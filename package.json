@@ -1,0 +1,16 @@
+{
+  "name": "nokia-3310-jam",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.3",
+    "vite": "^2.0.0-beta.50"
+  },
+  "dependencies": {
+    "pota-8": "^0.1.1"
+  }
+}
