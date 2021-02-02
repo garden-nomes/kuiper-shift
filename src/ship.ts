@@ -1,3 +1,4 @@
+import Asteroid from "./asteroid";
 import { Vec3, Matrix } from "./math";
 
 export enum ShipState {
@@ -56,5 +57,22 @@ export default class Ship {
 
   thrust(acc: number[]) {
     this.vel = Vec3.add(this.vel, Matrix.mult3x3vec(this.rot, acc));
+  }
+
+  collideWithAsteroid(a: Asteroid) {
+    const asteroidToShip = Vec3.sub(this.pos, a.pos);
+
+    this.pos = Vec3.add(
+      a.pos,
+      Vec3.scale(Vec3.normalize(asteroidToShip), a.radius + 10e-5)
+    );
+
+    this.vel = Vec3.sub(
+      this.vel,
+      Vec3.scale(
+        asteroidToShip,
+        (2 * Vec3.dot(this.vel, asteroidToShip)) / Vec3.magSq(asteroidToShip)
+      )
+    );
   }
 }

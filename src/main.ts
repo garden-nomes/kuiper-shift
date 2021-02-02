@@ -5,24 +5,7 @@ import { Projection, Vec3 } from "./math";
 import Ship, { ShipState } from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
-
-class Asteroid {
-  radius = Math.random() * 0.5;
-
-  constructor(public pos: number[]) {}
-
-  draw(projection: Projection) {
-    const [sx, sy, sz] = projection.projectToScreen(this.pos);
-
-    if (sz > 0) {
-      const r = this.radius / (sz + 0.01);
-
-      if (sx + r > 0 && sx - r < p.width && sy + r > 0 && sy - r < p.height) {
-        p.circle(sx, sy, r, { color: light, depth: -sz });
-      }
-    }
-  }
-}
+import Asteroid from "./asteroid";
 
 const asteroids: Asteroid[] = [];
 
@@ -41,7 +24,7 @@ const stars: number[][] = [];
 for (let i = 0; i < 100; i++) {
   let p = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
   p = Vec3.normalize(p);
-  p = Vec3.scale(p, 1000);
+  p = Vec3.scale(p, 10e6);
   stars.push([...p, Math.random()]);
 }
 
@@ -122,8 +105,7 @@ init({
           particles.push(new Particle(asteroids[i].pos));
         }
 
-        asteroids.splice(i, 1);
-        i--;
+        ship.collideWithAsteroid(asteroids[i]);
       } else if (distSq < (radius + 0.2) * (radius + 0.2)) {
         mining.push(asteroids[i]);
         asteroids[i].radius -= p.deltaTime * 0.1;
