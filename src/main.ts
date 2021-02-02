@@ -31,6 +31,14 @@ const ship = {
   vel: [0, 0, 0]
 };
 
+const miner = {
+  x: 2,
+  flipX: false,
+  walkAnimTimer: 0
+};
+
+let isDriving = false;
+
 function turn(pitch: number, yaw: number) {
   ship.rot = mult3x3(pitchMatrix(pitch), mult3x3(yawMatrix(yaw), ship.rot));
 }
@@ -68,31 +76,60 @@ init({
   loop() {
     p.clear(dark);
 
-    let state = null;
+    let guiText = null;
 
-    // turn ship
-    if (p.keyDown("left")) turn(0, p.deltaTime);
-    if (p.keyDown("right")) turn(0, -p.deltaTime);
-    if (p.keyDown("up")) turn(p.deltaTime, 0);
-    if (p.keyDown("down")) turn(-p.deltaTime, 0);
+    if (isDriving) {
+      // turn ship
+      if (p.keyDown("left")) turn(0, p.deltaTime);
+      if (p.keyDown("right")) turn(0, -p.deltaTime);
+      if (p.keyDown("up")) turn(p.deltaTime, 0);
+      if (p.keyDown("down")) turn(-p.deltaTime, 0);
 
-    // accelerate forwards/backwards
-    if (p.keyDown("z")) accelerateRelative([0, 0, p.deltaTime]);
-    if (p.keyDown("x")) accelerateRelative([0, 0, -p.deltaTime]);
+      // accelerate forwards/backwards
+      if (p.keyDown("z")) accelerateRelative([0, 0, p.deltaTime]);
+      if (p.keyDown("x")) accelerateRelative([0, 0, -p.deltaTime]);
+
+      // cancel driving
+      if (p.keyPressed("c")) isDriving = false;
+    } else {
+      const px = miner.x;
+
+      // move the miner
+      if (p.keyDown("left")) miner.x -= p.deltaTime * 16;
+      if (p.keyDown("right")) miner.x += p.deltaTime * 16;
+
+      // keep onscreen
+      miner.x = Math.min(Math.max(miner.x, 0), p.width - 8);
+
+      // update animation state
+      if (px !== miner.x) {
+        if (miner.x - px < 0) miner.flipX = true;
+        if (miner.x - px > 0) miner.flipX = false;
+        miner.walkAnimTimer += p.deltaTime;
+      } else {
+        miner.walkAnimTimer = 0;
+      }
+
+      // add console interaction
+      if (miner.x > 36 && miner.x < 50) {
+        guiText = ["press c to drive"];
+        if (p.keyPressed("c")) isDriving = true;
+      }
+    }
 
     // apply linear drag
-    if (!p.keyDown("z") && !p.keyDown("x")) {
+    if (!isDriving || (!p.keyDown("z") && !p.keyDown("x"))) {
       const speed = mag(ship.vel);
 
       if (speed > 10e-4) {
         const drag = scaleVec(normalize(ship.vel), -Math.min(p.deltaTime, mag(ship.vel)));
         ship.vel = addVec(drag, ship.vel);
-        state = ["braking"];
+        guiText = ["braking"];
       } else {
         ship.vel = [0, 0, 0];
       }
     } else {
-      state = ["accelerating"];
+      guiText = ["accelerating"];
     }
 
     ship.pos = addVec(ship.pos, scaleVec(ship.vel, p.deltaTime));
@@ -111,9 +148,16 @@ init({
 
     p.sprite(0, 0, sprites.frame[0]);
 
-    if (state) {
+    const frame =
+      miner.walkAnimTimer > 0
+        ? (Math.floor(miner.walkAnimTimer * 8) % (sprites.miner.length - 1)) + 1
+        : 0;
+
+    p.sprite(miner.x, p.height - 8, sprites.miner[frame], { flipX: miner.flipX });
+
+    if (guiText) {
       let y = 4;
-      for (const line of state) {
+      for (const line of guiText) {
         if (!line) {
           y += 6;
           continue;
