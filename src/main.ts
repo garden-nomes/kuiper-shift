@@ -1,4 +1,5 @@
-import { init, TextAlign, VerticalAlign } from "pota-8";
+import { init, TextAlign } from "pota-8";
+import * as SimplexNoise from "simplex-noise";
 import fontSrc from "../assets/Gizmo199lightfont.png";
 import { sprites, spritesheet } from "../asset-bundles";
 import { Projection, Vec3 } from "./math";
@@ -6,7 +7,7 @@ import Ship, { ShipState } from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
 import Asteroid from "./asteroid";
-import * as SimplexNoise from "simplex-noise";
+import Plant, { PlantState } from "./plant";
 
 const noise = new SimplexNoise();
 
@@ -66,6 +67,7 @@ let particles: Particle[] = [];
 
 const ship = new Ship();
 const miner = new Miner();
+const plant = new Plant(21, 48);
 
 let isDriving = false;
 let showControls = false;
@@ -103,6 +105,7 @@ init({
 
     ship.update();
     miner.update();
+    plant.update();
 
     const mining = [];
 
@@ -171,6 +174,37 @@ init({
           showControls = true;
         }
       }
+
+      // plant interaction
+      if (!miner.heldPlant && Math.abs(miner.x - plant.x) < 2) {
+        guiText = ["<c> water", "<x> move"];
+
+        switch (plant.state()) {
+          case PlantState.Happy:
+            guiText = [...guiText, null, "the plant", "looks happy"];
+            break;
+          case PlantState.Thirsty:
+            guiText = [...guiText, null, "the plant", "looks thirsty"];
+            break;
+          case PlantState.Sickly:
+            guiText = [...guiText, null, "the plant", "looks sickly"];
+            break;
+        }
+
+        if (p.keyPressed("c")) {
+          plant.water();
+        }
+
+        if (p.keyPressed("x")) {
+          miner.heldPlant = plant;
+        }
+      } else if (miner.heldPlant) {
+        guiText = ["<x> place"];
+
+        if (p.keyPressed("x")) {
+          miner.heldPlant = null;
+        }
+      }
     }
 
     // show "collision detected" text
@@ -216,6 +250,7 @@ init({
     // draw foreground
     p.center(p.width / 2, p.height / 2);
     p.sprite(0, 0, sprites.frame[0]);
+    plant.draw();
     miner.draw();
 
     if (guiText) {
