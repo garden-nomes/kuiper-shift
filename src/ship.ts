@@ -13,7 +13,10 @@ export default class Ship {
   pos = [0, 0, 0];
   vel = [0, 0, 0];
   hasControl = false;
+  miningDistance = 0.2;
+  miningRate = 0.025;
   state = ShipState.Idle;
+  ore = 0;
 
   update() {
     this.state = ShipState.Idle;

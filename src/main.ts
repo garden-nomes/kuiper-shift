@@ -100,15 +100,14 @@ init({
     for (let i = 0; i < asteroids.length; i++) {
       const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
       const radius = asteroids[i].radius;
-      if (distSq < radius * radius) {
-        for (let j = 0; j < 30; j++) {
-          particles.push(new Particle(asteroids[i].pos));
-        }
+      const { miningDistance, miningRate } = ship;
 
+      if (distSq < radius * radius) {
         ship.collideWithAsteroid(asteroids[i]);
-      } else if (distSq < (radius + 0.2) * (radius + 0.2)) {
+      } else if (distSq < (radius + miningDistance) * (radius + miningDistance)) {
+        asteroids[i].radius -= p.deltaTime * miningRate;
+        ship.ore += p.deltaTime * 100;
         mining.push(asteroids[i]);
-        asteroids[i].radius -= p.deltaTime * 0.1;
 
         if (asteroids[i].radius <= 0) {
           for (let j = 0; j < 10; j++) {
@@ -119,10 +118,10 @@ init({
           i--;
         }
 
+        guiText = ["mining", `ore: ${ship.ore.toFixed(0)}`];
+
         if (p.elapsed % 1 < 2 / 3) {
-          guiText = ["mining", null, "proximity", "warning"];
-        } else {
-          guiText = ["mining"];
+          guiText.push(null, "proximity", "warning");
         }
       }
     }
@@ -189,7 +188,7 @@ init({
       let y = 6;
       for (const line of guiText) {
         if (!line) {
-          y += 6;
+          y += 3;
           continue;
         }
 
