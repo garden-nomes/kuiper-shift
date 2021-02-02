@@ -105,7 +105,7 @@ export class Projection {
     ];
   }
 
-  projectToScreen(x: number, y: number, z: number) {
+  projectToScreen([x, y, z]: number[]) {
     [x, y, z] = [
       this.m[0][0] * x + this.m[1][0] * y + this.m[2][0] * z + this.m[3][0],
       this.m[0][1] * x + this.m[1][1] * y + this.m[2][1] * z + this.m[3][1],
