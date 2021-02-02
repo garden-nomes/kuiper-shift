@@ -8,75 +8,63 @@ import Miner from "./miner";
 import { light, dark } from "./colors";
 import Asteroid from "./asteroid";
 import Plant, { PlantState } from "./plant";
+import ExplosionParticle from "./explosion-particle";
 
 const noise = new SimplexNoise();
-
-const asteroids: Asteroid[] = [];
-
-for (let i = 0; i < 100; i++) {
-  asteroids.push(
-    new Asteroid([
-      Math.random() * 20 - 10,
-      Math.random() * 20 - 10,
-      Math.random() * 20 - 10
-    ])
-  );
-}
-
-const stars: number[][] = [];
-
-for (let i = 0; i < 100; i++) {
-  let p = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
-  p = Vec3.normalize(p);
-  p = Vec3.scale(p, 10e6);
-  stars.push([...p, Math.random()]);
-}
-
-class Particle {
-  vel: number[];
-  lifespan = Math.random() * 4;
-  isDead = false;
-
-  constructor(private pos: number[]) {
-    this.vel = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
-    this.vel = Vec3.scale(Vec3.normalize(this.vel), Math.random() + 0.5);
-  }
-
-  update() {
-    this.lifespan -= p.deltaTime;
-
-    if (this.lifespan <= 0) {
-      this.isDead = true;
-    }
-
-    this.pos = Vec3.add(this.pos, Vec3.scale(this.vel, p.deltaTime));
-  }
-
-  draw(projection: Projection) {
-    const [sx, sy, sz] = projection.projectToScreen(this.pos);
-
-    if (sz > 0) {
-      const flipColor = (p.elapsed * 30) % 2 > 1;
-      const c = flipColor ? light : dark;
-      p.pixel(sx, sy, c);
-    }
-  }
-}
-
-let particles: Particle[] = [];
-
-const ship = new Ship();
-const miner = new Miner();
-const plant = new Plant(21, 48);
-
-let isDriving = false;
-let showControls = false;
-let showDamageTimer = 0;
 let shakeTimer = 0;
 
-ship.onDamage = () => {
-  showDamageTimer = 2;
-};
+function setupGameState() {
+  const asteroids: Asteroid[] = [];
+
+  for (let i = 0; i < 100; i++) {
+    asteroids.push(
+      new Asteroid([
+        Math.random() * 20 - 10,
+        Math.random() * 20 - 10,
+        Math.random() * 20 - 10
+      ])
+    );
+  }
+
+  const stars: number[][] = [];
+
+  for (let i = 0; i < 100; i++) {
+    let p = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
+    p = Vec3.normalize(p);
+    p = Vec3.scale(p, 10e6);
+    stars.push([...p, Math.random()]);
+  }
+
+  let particles: ExplosionParticle[] = [];
+
+  const ship = new Ship();
+  const miner = new Miner();
+  const plant = new Plant(21, 48);
+
+  let isDriving = false;
+  let showControls = false;
+  let showDamageTimer = 0;
+
+  const state = {
+    asteroids,
+    stars,
+    particles,
+    ship,
+    miner,
+    plant,
+    isDriving,
+    showControls,
+    showDamageTimer
+  };
+
+  ship.onDamage = () => {
+    state.showDamageTimer = 2;
+  };
+
+  return state;
+}
+
+export const state = setupGameState();
 
 init({
   showFps: import.meta.env.DEV,
@@ -93,15 +81,14 @@ init({
     letters: "!\"# % '()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz"
   },
 
-  setup() {},
-
   loop() {
+    const { ship, miner, plant, asteroids, particles, stars } = state;
     p.clear(dark);
 
     let guiText = null;
 
-    ship.hasControl = isDriving;
-    miner.hasControl = !isDriving;
+    ship.hasControl = state.isDriving;
+    miner.hasControl = !state.isDriving;
 
     ship.update();
     miner.update();
@@ -117,7 +104,7 @@ init({
       if (distSq < radius * radius) {
         ship.collideWithAsteroid(asteroids[i]);
       } else if (
-        showDamageTimer <= 0 &&
+        state.showDamageTimer <= 0 &&
         distSq < (radius + miningDistance) * (radius + miningDistance)
       ) {
         asteroids[i].radius -= p.deltaTime * miningRate;
@@ -126,7 +113,7 @@ init({
 
         if (asteroids[i].radius <= 0) {
           for (let j = 0; j < 10; j++) {
-            particles.push(new Particle(asteroids[i].pos));
+            particles.push(new ExplosionParticle(asteroids[i].pos));
           }
 
           asteroids.splice(i, 1);
@@ -142,16 +129,16 @@ init({
     }
 
     particles.forEach(p => p.update());
-    particles = particles.filter(p => !p.isDead);
+    state.particles = particles.filter(p => !p.isDead);
 
-    if (isDriving) {
+    if (state.isDriving) {
       // show controls until player starts moving
-      if (showControls) {
+      if (state.showControls) {
         guiText = ["<z> forward", "<x> reverse", null, "<c> cancel"];
       }
 
-      if (showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
-        showControls = false;
+      if (state.showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
+        state.showControls = false;
       }
 
       // add titles
@@ -164,14 +151,14 @@ init({
       }
 
       // cancel driving
-      if (p.keyPressed("c")) isDriving = false;
+      if (p.keyPressed("c")) state.isDriving = false;
     } else {
       // add console interaction
       if (miner.x > 36 && miner.x < 50) {
         guiText = ["<c> drive"];
         if (p.keyPressed("c")) {
-          isDriving = true;
-          showControls = true;
+          state.isDriving = true;
+          state.showControls = true;
         }
       }
 
@@ -208,8 +195,8 @@ init({
     }
 
     // show "collision detected" text
-    if (showDamageTimer > 0) {
-      showDamageTimer -= p.deltaTime;
+    if (state.showDamageTimer > 0) {
+      state.showDamageTimer -= p.deltaTime;
 
       if (p.elapsed % 0.5 < 2 / 6) {
         const hullIntegrity = `${(ship.hullIntegrity * 100).toFixed(0)}%`;
@@ -229,7 +216,7 @@ init({
     }
 
     // add screen shake
-    const dmgShake = Math.max(0, showDamageTimer * showDamageTimer);
+    const dmgShake = Math.max(0, state.showDamageTimer * state.showDamageTimer);
     shakeTimer += p.deltaTime * dmgShake * 4;
     const shakeX = noise.noise2D(10e4, shakeTimer) * (1 + dmgShake * 0.5);
     const shakeY = noise.noise2D(10e5, shakeTimer) * (1 + dmgShake * 0.5);

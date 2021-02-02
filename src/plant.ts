@@ -15,7 +15,7 @@ export default class Plant {
 
   update() {
     this.hydration -= p.deltaTime * 0.01;
-    this.hydration = Math.max(this.hydration, 0);
+    this.hydration = Math.min(Math.max(this.hydration, 0), 2);
 
     this.sickly += p.deltaTime * (this.hydration - 1) * 0.1;
     this.sickly = Math.min(Math.max(this.sickly, 0), 1);
