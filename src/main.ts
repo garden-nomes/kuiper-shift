@@ -223,8 +223,8 @@ init({
           continue;
         }
 
-        const w = p.textWidth(line) + 2;
-        p.rect(p.width / 2 - w / 2, y, w, 5, dark);
+        const w = p.textWidth(line);
+        p.rect(p.width / 2 - Math.floor(w / 2) - 1, y - 1, w + 2, 7, dark);
         p.text(line, p.width / 2, y, { color: light, align: TextAlign.Center });
         y += 6;
       }
