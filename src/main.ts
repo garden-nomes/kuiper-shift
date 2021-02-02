@@ -113,7 +113,10 @@ init({
 
       if (distSq < radius * radius) {
         ship.collideWithAsteroid(asteroids[i]);
-      } else if (distSq < (radius + miningDistance) * (radius + miningDistance)) {
+      } else if (
+        showDamageTimer <= 0 &&
+        distSq < (radius + miningDistance) * (radius + miningDistance)
+      ) {
         asteroids[i].radius -= p.deltaTime * miningRate;
         ship.ore += p.deltaTime * 10;
         mining.push(asteroids[i]);
