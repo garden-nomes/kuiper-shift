@@ -2,6 +2,24 @@ function dot(v0: number[], v1: number[]) {
   return v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2];
 }
 
+export function sub([x0, y0, z0]: number[], [x1, y1, z1]: number[]) {
+  return [x0 - x1, y0 - y1, z0 - z1];
+}
+
+export function magSq([x, y, z]: number[]) {
+  return x * x + y * y + z * z;
+}
+
+export function mag([x, y, z]: number[]) {
+  return Math.sqrt(x * x + y * y + z * z);
+}
+
+export function normalize([x, y, z]: number[]) {
+  const d = Math.sqrt(x * x + y * y + z * z);
+  if (d === 0) return [0, 0, 1];
+  return [x / d, y / d, z / d];
+}
+
 export function mult3x3(m0: number[][], m1: number[][]) {
   return [
     [

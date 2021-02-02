@@ -1,12 +1,17 @@
 import { init, TextAlign, VerticalAlign } from "pota-8";
 import fontSrc from "../assets/Gizmo199lightfont.png";
+import { sprites, spritesheet } from "../asset-bundles";
 import {
   addVec,
+  mag,
+  magSq,
   mult3x3,
   mult3x3vec,
+  normalize,
   pitchMatrix,
   projectToScreen,
   scaleVec,
+  sub,
   viewMatrix,
   yawMatrix
 } from "./math";
@@ -30,7 +35,7 @@ function turn(pitch: number, yaw: number) {
   ship.rot = mult3x3(pitchMatrix(pitch), mult3x3(yawMatrix(yaw), ship.rot));
 }
 
-function accelerate(acc: number[]) {
+function accelerateRelative(acc: number[]) {
   ship.vel = addVec(ship.vel, mult3x3vec(ship.rot, acc));
 }
 
@@ -42,6 +47,7 @@ init({
   dimensions: [84, 48],
   crop: true,
 
+  spritesheet,
   font: {
     src: fontSrc,
     w: 5,
@@ -62,15 +68,33 @@ init({
   loop() {
     p.clear(dark);
 
+    let state = null;
+
+    // turn ship
     if (p.keyDown("left")) turn(0, p.deltaTime);
     if (p.keyDown("right")) turn(0, -p.deltaTime);
     if (p.keyDown("up")) turn(p.deltaTime, 0);
     if (p.keyDown("down")) turn(-p.deltaTime, 0);
 
-    if (p.keyDown("z")) accelerate([0, 0, p.deltaTime]);
-    if (p.keyDown("x")) accelerate([0, 0, -p.deltaTime]);
+    // accelerate forwards/backwards
+    if (p.keyDown("z")) accelerateRelative([0, 0, p.deltaTime]);
+    if (p.keyDown("x")) accelerateRelative([0, 0, -p.deltaTime]);
 
-    ship.vel = scaleVec(ship.vel, 1 - p.deltaTime * 2);
+    // apply linear drag
+    if (!p.keyDown("z") && !p.keyDown("x")) {
+      const speed = mag(ship.vel);
+
+      if (speed > 10e-4) {
+        const drag = scaleVec(normalize(ship.vel), -Math.min(p.deltaTime, mag(ship.vel)));
+        ship.vel = addVec(drag, ship.vel);
+        state = ["braking"];
+      } else {
+        ship.vel = [0, 0, 0];
+      }
+    } else {
+      state = ["accelerating"];
+    }
+
     ship.pos = addVec(ship.pos, scaleVec(ship.vel, p.deltaTime));
 
     const view = viewMatrix(ship.pos, ship.rot);
@@ -82,6 +106,23 @@ init({
         if (sx + r > 0 && sx - r < p.width && sy + r > 0 && sy - r < p.height) {
           p.circle(sx, sy, 8 / (sz + 0.01), light);
         }
+      }
+    }
+
+    p.sprite(0, 0, sprites.frame[0]);
+
+    if (state) {
+      let y = 4;
+      for (const line of state) {
+        if (!line) {
+          y += 6;
+          continue;
+        }
+
+        const w = p.textWidth(line) + 2;
+        p.rect(p.width / 2 - w / 2, y - 1, w, 7, dark);
+        p.text(line, p.width / 2, y, { color: light, align: TextAlign.Center });
+        y += 6;
       }
     }
   }

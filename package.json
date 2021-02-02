@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
+    "dev:assets": "pota-8 bundle-assets -w ./assets",
     "build": "vite build",
+    "build:assets": "pota-8 bundle-assets ./assets",
     "serve": "vite preview"
   },
   "devDependencies": {
@@ -11,6 +13,6 @@
     "vite": "^2.0.0-beta.50"
   },
   "dependencies": {
-    "pota-8": "^0.1.1"
+    "pota-8": "^0.2.0"
   }
 }
