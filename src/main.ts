@@ -6,6 +6,9 @@ import Ship, { ShipState } from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
 import Asteroid from "./asteroid";
+import * as SimplexNoise from "simplex-noise";
+
+const noise = new SimplexNoise();
 
 const asteroids: Asteroid[] = [];
 
@@ -67,6 +70,7 @@ const miner = new Miner();
 let isDriving = false;
 let showControls = false;
 let showDamageTimer = 0;
+let shakeTimer = 0;
 
 ship.onDamage = () => {
   showDamageTimer = 2;
@@ -111,7 +115,7 @@ init({
         ship.collideWithAsteroid(asteroids[i]);
       } else if (distSq < (radius + miningDistance) * (radius + miningDistance)) {
         asteroids[i].radius -= p.deltaTime * miningRate;
-        ship.ore += p.deltaTime * 100;
+        ship.ore += p.deltaTime * 10;
         mining.push(asteroids[i]);
 
         if (asteroids[i].radius <= 0) {
@@ -166,29 +170,7 @@ init({
       }
     }
 
-    const projection = new Projection(ship.pos, ship.rot, p.width / 2);
-
-    for (const starPos of stars) {
-      const [sx, sy, sz] = projection.projectToScreen(starPos);
-      if (sz > 0) {
-        p.pixel(sx, sy, light);
-      }
-    }
-
-    asteroids.forEach(a => a.draw(projection));
-    particles.forEach(p => p.draw(projection));
-
-    mining.forEach(asteroid => {
-      const [x1, y1] = projection.projectToScreen(asteroid.pos);
-      p.line(0, p.height, x1, y1, light);
-      p.line(0, p.height - 1, x1, y1 - 1, dark);
-      p.line(p.width, p.height, x1, y1, light);
-      p.line(p.width, p.height - 1, x1, y1 - 1, dark);
-    });
-
-    p.sprite(0, 0, sprites.frame[0]);
-    miner.draw();
-
+    // show "collision detected" text
     if (showDamageTimer > 0) {
       showDamageTimer -= p.deltaTime;
 
@@ -199,6 +181,39 @@ init({
         guiText = null;
       }
     }
+
+    const projection = new Projection(ship.pos, ship.rot, p.width / 2);
+
+    for (const starPos of stars) {
+      const [sx, sy, sz] = projection.projectToScreen(starPos);
+      if (sz > 0) {
+        p.pixel(sx, sy, light);
+      }
+    }
+
+    // add screen shake
+    const dmgShake = Math.max(0, showDamageTimer * showDamageTimer);
+    shakeTimer += p.deltaTime * dmgShake * 4;
+    const shakeX = noise.noise2D(10e4, shakeTimer) * (1 + dmgShake * 0.5);
+    const shakeY = noise.noise2D(10e5, shakeTimer) * (1 + dmgShake * 0.5);
+    p.center(p.width / 2 + shakeX, p.height / 2 + shakeY);
+
+    asteroids.forEach(a => a.draw(projection));
+    particles.forEach(p => p.draw(projection));
+
+    // draw mining lasers
+    mining.forEach(asteroid => {
+      const [x1, y1] = projection.projectToScreen(asteroid.pos);
+      p.line(0, p.height, x1, y1, light);
+      p.line(0, p.height - 1, x1, y1 - 1, dark);
+      p.line(p.width, p.height, x1, y1, light);
+      p.line(p.width, p.height - 1, x1, y1 - 1, dark);
+    });
+
+    // draw foreground
+    p.center(p.width / 2, p.height / 2);
+    p.sprite(0, 0, sprites.frame[0]);
+    miner.draw();
 
     if (guiText) {
       let y = 6;

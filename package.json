@@ -13,6 +13,7 @@
     "vite": "^2.0.0-beta.50"
   },
   "dependencies": {
-    "pota-8": "^0.2.0"
+    "pota-8": "^0.2.0",
+    "simplex-noise": "^2.4.0"
   }
 }
