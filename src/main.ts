@@ -66,6 +66,11 @@ const miner = new Miner();
 
 let isDriving = false;
 let showControls = false;
+let showDamageTimer = 0;
+
+ship.onDamage = () => {
+  showDamageTimer = 2;
+};
 
 init({
   showFps: import.meta.env.DEV,
@@ -183,6 +188,17 @@ init({
 
     p.sprite(0, 0, sprites.frame[0]);
     miner.draw();
+
+    if (showDamageTimer > 0) {
+      showDamageTimer -= p.deltaTime;
+
+      if (p.elapsed % 0.5 < 2 / 6) {
+        const hullIntegrity = `${(ship.hullIntegrity * 100).toFixed(0)}%`;
+        guiText = ["collision", "detected", null, "hull: " + hullIntegrity];
+      } else {
+        guiText = null;
+      }
+    }
 
     if (guiText) {
       let y = 6;

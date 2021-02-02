@@ -17,6 +17,9 @@ export default class Ship {
   miningRate = 0.025;
   state = ShipState.Idle;
   ore = 0;
+  damageThreshold = 0.1;
+  onDamage: () => any = () => {};
+  hullIntegrity = 1;
 
   update() {
     this.state = ShipState.Idle;
@@ -77,5 +80,10 @@ export default class Ship {
         (2 * Vec3.dot(this.vel, asteroidToShip)) / Vec3.magSq(asteroidToShip)
       )
     );
+
+    if (Vec3.magSq(this.vel) > this.damageThreshold * this.damageThreshold) {
+      this.hullIntegrity -= 0.1;
+      this.onDamage();
+    }
   }
 }
