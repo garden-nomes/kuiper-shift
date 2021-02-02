@@ -82,6 +82,7 @@ const ship = new Ship();
 const miner = new Miner();
 
 let isDriving = false;
+let showControls = false;
 
 init({
   showFps: import.meta.env.DEV,
@@ -148,6 +149,15 @@ init({
     particles = particles.filter(p => !p.isDead);
 
     if (isDriving) {
+      // show controls until player starts moving
+      if (showControls) {
+        guiText = ["<z> forward", "<x> reverse", null, "<c> cancel"];
+      }
+
+      if (showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
+        showControls = false;
+      }
+
       // add titles
       if (!guiText) {
         if (ship.state === ShipState.Accelerating) {
@@ -163,7 +173,10 @@ init({
       // add console interaction
       if (miner.x > 36 && miner.x < 50) {
         guiText = ["<c> drive"];
-        if (p.keyPressed("c")) isDriving = true;
+        if (p.keyPressed("c")) {
+          isDriving = true;
+          showControls = true;
+        }
       }
     }
 
