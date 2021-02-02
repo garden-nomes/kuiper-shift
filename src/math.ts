@@ -112,6 +112,6 @@ export class Projection {
       this.m[0][2] * x + this.m[1][2] * y + this.m[2][2] * z + this.m[3][2]
     ];
 
-    return [(x * this.s) / z + p.width / 2, (y * -this.s) / z + p.height / 2, z];
+    return [(x * this.s) / z + p.width / 2, (y * -this.s) / z + p.height / 2, z / this.s];
   }
 }

@@ -4,12 +4,10 @@ import { sprites, spritesheet } from "../asset-bundles";
 import { Projection, Vec3 } from "./math";
 import Ship, { ShipState } from "./ship";
 import Miner from "./miner";
-
-const light = [199, 240, 216];
-const dark = [67, 82, 61];
+import { light, dark } from "./colors";
 
 class Asteroid {
-  size = Math.random() * 5 + 5;
+  radius = Math.random() * 0.5;
 
   constructor(public pos: number[]) {}
 
@@ -17,7 +15,7 @@ class Asteroid {
     const [sx, sy, sz] = projection.projectToScreen(this.pos);
 
     if (sz > 0) {
-      const r = this.size / (sz + 0.01);
+      const r = this.radius / (sz + 0.01);
 
       if (sx + r > 0 && sx - r < p.width && sy + r > 0 && sy - r < p.height) {
         p.circle(sx, sy, r, { color: light, depth: -sz });
@@ -117,18 +115,19 @@ init({
 
     for (let i = 0; i < asteroids.length; i++) {
       const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
-      if (distSq < 0.3 * 0.3) {
+      const radius = asteroids[i].radius;
+      if (distSq < radius * radius) {
         for (let j = 0; j < 30; j++) {
           particles.push(new Particle(asteroids[i].pos));
         }
 
         asteroids.splice(i, 1);
         i--;
-      } else if (distSq < 0.5 * 0.5) {
+      } else if (distSq < (radius + 0.2) * (radius + 0.2)) {
         mining.push(asteroids[i]);
-        asteroids[i].size -= p.deltaTime;
+        asteroids[i].radius -= p.deltaTime * 0.1;
 
-        if (asteroids[i].size <= 0) {
+        if (asteroids[i].radius <= 0) {
           for (let j = 0; j < 10; j++) {
             particles.push(new Particle(asteroids[i].pos));
           }
