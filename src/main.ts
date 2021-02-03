@@ -11,6 +11,7 @@ import Plant from "./plant";
 import ExplosionParticle from "./explosion-particle";
 import Gui from "./gui";
 import dither from "./dither";
+import Menu from "./menu";
 
 const noise = new SimplexNoise();
 let shakeTimer = 0;
@@ -24,13 +25,14 @@ function setupGameState() {
   const miner = new Miner();
   const plant = new Plant(21, 48);
   const gui = new Gui();
+  const menu = new Menu(ship);
 
   let isDriving = false;
   let showControls = false;
   let showDamageTimer = 0;
   let deadTimer = 0;
   let dreamBackdrop = 1;
-  let isAsleep = true;
+  let isAsleep = false;
 
   const state = {
     asteroids,
@@ -40,6 +42,7 @@ function setupGameState() {
     miner,
     plant,
     gui,
+    menu,
     isDriving,
     showControls,
     showDamageTimer,
@@ -69,6 +72,14 @@ function setupGameState() {
     state.showDamageTimer = 2;
   };
 
+  menu.onContinue = () => {
+    state.isAsleep = false;
+  };
+
+  menu.onBuyPlant = () => {
+    console.log("congrats on ur new plant");
+  };
+
   return state;
 }
 
@@ -94,9 +105,9 @@ init({
   },
 
   loop() {
-    const { ship, miner, plant, asteroids, particles, stars, gui } = state;
+    const { ship, miner, plant, asteroids, particles, stars, gui, menu } = state;
 
-    p.clear(dark);
+    p.clear(state.dreamBackdrop < 1 ? dark : light);
 
     gui.text = [];
 
@@ -108,11 +119,7 @@ init({
     } else if (state.dreamBackdrop < 1 && state.isAsleep) {
       state.dreamBackdrop += p.deltaTime;
     } else if (state.isAsleep) {
-      gui.asleep();
-
-      if (p.keyPressed("c")) {
-        state.isAsleep = false;
-      }
+      menu.loop();
     } else {
       ship.hasControl = state.isDriving;
       miner.hasControl = !state.isDriving;
@@ -171,7 +178,7 @@ init({
         }
 
         // add titles
-        if (!gui.text) {
+        if (!gui.text.length) {
           gui.showShipState(ship);
         }
 
@@ -200,6 +207,7 @@ init({
             gui.interactBed();
 
             if (p.keyPressed("c")) {
+              menu.reset();
               state.isAsleep = true;
             }
           }
@@ -226,62 +234,66 @@ init({
       }
     }
 
-    // create exterior camera projection
-    const projection = new Projection(ship.pos, ship.rot, p.width / 2);
+    if (state.dreamBackdrop < 1) {
+      // create exterior camera projection
+      const projection = new Projection(ship.pos, ship.rot, p.width / 2);
 
-    // draw stars
-    for (const starPos of stars) {
-      const [sx, sy, sz] = projection.projectToScreen(starPos);
-      if (sz > 0) {
-        p.pixel(sx, sy, light);
+      // draw stars
+      for (const starPos of stars) {
+        const [sx, sy, sz] = projection.projectToScreen(starPos);
+        if (sz > 0) {
+          p.pixel(sx, sy, light);
+        }
       }
-    }
 
-    // add screen shake
-    const dmgShake = Math.max(0, state.showDamageTimer * state.showDamageTimer);
-    shakeTimer += p.deltaTime * dmgShake * 4;
-    const shakeX = noise.noise2D(10e4, shakeTimer) * (1 + dmgShake * 0.5);
-    const shakeY = noise.noise2D(10e5, shakeTimer) * (1 + dmgShake * 0.5);
-    p.center(p.width / 2 + shakeX, p.height / 2 + shakeY);
+      // add screen shake
+      const dmgShake = Math.max(0, state.showDamageTimer * state.showDamageTimer);
+      shakeTimer += p.deltaTime * dmgShake * 4;
+      const shakeX = noise.noise2D(10e4, shakeTimer) * (1 + dmgShake * 0.5);
+      const shakeY = noise.noise2D(10e5, shakeTimer) * (1 + dmgShake * 0.5);
+      p.center(p.width / 2 + shakeX, p.height / 2 + shakeY);
 
-    // draw asteroids/particles
-    asteroids.forEach(a => a.draw(projection));
-    particles.forEach(p => p.draw(projection));
+      // draw asteroids/particles
+      asteroids.forEach(a => a.draw(projection));
+      particles.forEach(p => p.draw(projection));
 
-    // draw mining lasers
-    if (ship.hullIntegrity > 0) {
-      mining.forEach(asteroid => {
-        const [x1, y1] = projection.projectToScreen(asteroid.pos);
-        p.line(0, p.height, x1, y1, light);
-        p.line(0, p.height - 1, x1, y1 - 1, dark);
-        p.line(p.width, p.height, x1, y1, light);
-        p.line(p.width, p.height - 1, x1, y1 - 1, dark);
-      });
-    }
+      // draw mining lasers
+      if (ship.hullIntegrity > 0) {
+        mining.forEach(asteroid => {
+          const [x1, y1] = projection.projectToScreen(asteroid.pos);
+          p.line(0, p.height, x1, y1, light);
+          p.line(0, p.height - 1, x1, y1 - 1, dark);
+          p.line(p.width, p.height, x1, y1, light);
+          p.line(p.width, p.height - 1, x1, y1 - 1, dark);
+        });
+      }
 
-    // undo screen shake for interior
-    p.center(p.width / 2, p.height / 2);
+      // undo screen shake for interior
+      p.center(p.width / 2, p.height / 2);
 
-    // draw interior
-    if (ship.hullIntegrity > 0) {
-      p.sprite(0, 0, sprites.frame[0]);
-      plant.draw();
-      miner.draw();
-    }
+      // draw interior
+      if (ship.hullIntegrity > 0) {
+        p.sprite(0, 0, sprites.frame[0]);
+        plant.draw();
+        miner.draw();
+      }
 
-    // if (state.dreamBackdrop > 0) {
-    for (let x = 0; x < p.width; x++) {
-      for (let y = 0; y < p.height; y++) {
-        const dx = x - 4;
-        const dy = y - (p.height - 4);
-        const dist = Math.sqrt(dx * dx + dy * dy);
+      // draw the fade in/out effect
+      if (state.dreamBackdrop > 0) {
+        for (let x = 0; x < p.width; x++) {
+          for (let y = 0; y < p.height; y++) {
+            const dx = x - 4;
+            const dy = y - (p.height - 4);
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const b = 1 - state.dreamBackdrop;
-        const w = p.width;
-        const t = (dist + w - b * (p.width * 2)) / w;
+            const b = 1 - state.dreamBackdrop;
+            const w = p.width;
+            const t = (dist + w - b * (p.width * 2)) / w;
 
-        if (dither(x, y, t)) {
-          p.pixel(x, y, light);
+            if (dither(x, y, t)) {
+              p.pixel(x, y, light);
+            }
+          }
         }
       }
     }

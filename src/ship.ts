@@ -17,6 +17,7 @@ export default class Ship {
   miningRate = 0.025;
   state = ShipState.Idle;
   ore = 0;
+  credits = 0;
   damageThreshold = 0.1;
   onDamage: () => any = () => {};
   hullIntegrity = 1;
