@@ -24,7 +24,7 @@ export default class Gui {
   }
 
   showMining(ore: number) {
-    this.text = ["mining", `ore: ${ore.toFixed(0)}`];
+    this.text = ["mining", `ore: ${ore.toFixed(0)}/1000`];
 
     if (p.elapsed % 1 < 2 / 3) {
       this.text.push(null, "proximity", "warning");
@@ -45,6 +45,10 @@ export default class Gui {
 
   interactConsole() {
     this.text = ["<c> drive"];
+  }
+
+  interactBed() {
+    this.text = ["<c> rest"];
   }
 
   interactPlant(plant: Plant) {
@@ -74,5 +78,9 @@ export default class Gui {
     } else {
       this.text = [];
     }
+  }
+
+  asleep() {
+    this.text = ["<c> wake up"];
   }
 }

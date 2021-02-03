@@ -10,33 +10,15 @@ import Asteroid from "./asteroid";
 import Plant from "./plant";
 import ExplosionParticle from "./explosion-particle";
 import Gui from "./gui";
+import dither from "./dither";
 
 const noise = new SimplexNoise();
 let shakeTimer = 0;
 
 function setupGameState() {
   const asteroids: Asteroid[] = [];
-
-  for (let i = 0; i < 100; i++) {
-    asteroids.push(
-      new Asteroid([
-        Math.random() * 20 - 10,
-        Math.random() * 20 - 10,
-        Math.random() * 20 - 10
-      ])
-    );
-  }
-
-  const stars: number[][] = [];
-
-  for (let i = 0; i < 100; i++) {
-    let p = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
-    p = Vec3.normalize(p);
-    p = Vec3.scale(p, 10e6);
-    stars.push([...p, Math.random()]);
-  }
-
   let particles: ExplosionParticle[] = [];
+  const stars: number[][] = [];
 
   const ship = new Ship();
   const miner = new Miner();
@@ -47,6 +29,8 @@ function setupGameState() {
   let showControls = false;
   let showDamageTimer = 0;
   let deadTimer = 0;
+  let dreamBackdrop = 1;
+  let isAsleep = true;
 
   const state = {
     asteroids,
@@ -59,8 +43,27 @@ function setupGameState() {
     isDriving,
     showControls,
     showDamageTimer,
-    deadTimer
+    deadTimer,
+    dreamBackdrop,
+    isAsleep
   };
+
+  for (let i = 0; i < 100; i++) {
+    asteroids.push(
+      new Asteroid([
+        Math.random() * 20 - 10,
+        Math.random() * 20 - 10,
+        Math.random() * 20 - 10
+      ])
+    );
+  }
+
+  for (let i = 0; i < 100; i++) {
+    let p = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
+    p = Vec3.normalize(p);
+    p = Vec3.scale(p, 10e6);
+    stars.push([...p, Math.random()]);
+  }
 
   ship.onDamage = () => {
     state.showDamageTimer = 2;
@@ -97,107 +100,130 @@ init({
 
     gui.text = [];
 
-    ship.hasControl = state.isDriving;
-    miner.hasControl = !state.isDriving;
-
-    ship.update();
-    miner.update();
-    plant.update();
-
     // track currently mining asteroids (there can be more than one)
     const mining = [];
 
-    // ship/asteroid interactions
-    if (ship.hullIntegrity > 0) {
-      for (let i = 0; i < asteroids.length; i++) {
-        const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
-        const radius = asteroids[i].radius;
-        const miningRadius = radius + ship.miningDistance;
+    if (state.dreamBackdrop > 0 && !state.isAsleep) {
+      state.dreamBackdrop -= p.deltaTime;
+    } else if (state.dreamBackdrop < 1 && state.isAsleep) {
+      state.dreamBackdrop += p.deltaTime;
+    } else if (state.isAsleep) {
+      gui.asleep();
 
-        if (distSq < radius * radius) {
-          // collision with asteroid
-          ship.collideWithAsteroid(asteroids[i]);
-
-          if (ship.hullIntegrity <= 0) {
-            for (let j = 0; j < 10; j++) {
-              particles.push(new ExplosionParticle(ship.pos));
-            }
-          }
-        } else if (state.showDamageTimer <= 0 && distSq < miningRadius * miningRadius) {
-          // mine asteroid
-          asteroids[i].radius -= p.deltaTime * ship.miningRate;
-          ship.ore += p.deltaTime * 10;
-          mining.push(asteroids[i]);
-
-          if (asteroids[i].radius <= 0) {
-            for (let j = 0; j < 10; j++) {
-              particles.push(new ExplosionParticle(asteroids[i].pos));
-            }
-
-            asteroids.splice(i, 1);
-            i--;
-          }
-
-          gui.showMining(ship.ore);
-        }
+      if (p.keyPressed("c")) {
+        state.isAsleep = false;
       }
-    }
-
-    particles.forEach(p => p.update());
-    state.particles = particles.filter(p => !p.isDead);
-
-    if (state.isDriving) {
-      // show controls until player starts moving
-      if (state.showControls) {
-        gui.showDrivingControls();
-      }
-
-      if (state.showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
-        state.showControls = false;
-      }
-
-      // add titles
-      if (!gui.text) {
-        gui.showShipState(ship);
-      }
-
-      // cancel driving
-      if (p.keyPressed("c")) state.isDriving = false;
     } else {
-      // add console interaction
-      if (miner.x > 36 && miner.x < 50) {
-        gui.interactConsole();
+      ship.hasControl = state.isDriving;
+      miner.hasControl = !state.isDriving;
 
-        if (p.keyPressed("c")) {
-          state.isDriving = true;
-          state.showControls = true;
+      ship.update();
+      miner.update();
+      plant.update();
+
+      // ship/asteroid interactions
+      if (ship.hullIntegrity > 0) {
+        for (let i = 0; i < asteroids.length; i++) {
+          const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
+          const radius = asteroids[i].radius;
+          const miningRadius = radius + ship.miningDistance;
+
+          if (distSq < radius * radius) {
+            // collision with asteroid
+            ship.collideWithAsteroid(asteroids[i]);
+
+            if (ship.hullIntegrity <= 0) {
+              for (let j = 0; j < 10; j++) {
+                particles.push(new ExplosionParticle(ship.pos));
+              }
+            }
+          } else if (state.showDamageTimer <= 0 && distSq < miningRadius * miningRadius) {
+            // mine asteroid
+            asteroids[i].radius -= p.deltaTime * ship.miningRate;
+            ship.ore += p.deltaTime * 10;
+            mining.push(asteroids[i]);
+
+            if (asteroids[i].radius <= 0) {
+              for (let j = 0; j < 10; j++) {
+                particles.push(new ExplosionParticle(asteroids[i].pos));
+              }
+
+              asteroids.splice(i, 1);
+              i--;
+            }
+
+            gui.showMining(ship.ore);
+          }
         }
       }
 
-      // plant interaction
-      if (!miner.heldPlant && Math.abs(miner.x - plant.x) < 2) {
-        gui.interactPlant(plant);
+      particles.forEach(p => p.update());
+      state.particles = particles.filter(p => !p.isDead);
 
-        if (p.keyPressed("c")) {
-          plant.water();
+      if (state.isDriving) {
+        // show controls until player starts moving
+        if (state.showControls) {
+          gui.showDrivingControls();
         }
 
-        if (p.keyPressed("x")) {
-          miner.heldPlant = plant;
+        if (state.showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
+          state.showControls = false;
         }
-      } else if (miner.heldPlant) {
-        gui.holdingPlant();
 
-        if (p.keyPressed("x")) {
-          miner.heldPlant = null;
+        // add titles
+        if (!gui.text) {
+          gui.showShipState(ship);
+        }
+
+        // cancel driving
+        if (p.keyPressed("c")) state.isDriving = false;
+      } else {
+        if (miner.heldPlant) {
+          gui.holdingPlant();
+
+          if (p.keyPressed("x")) {
+            miner.heldPlant = null;
+          }
+        } else {
+          // add console interaction
+          if (miner.x > 36 && miner.x < 50) {
+            gui.interactConsole();
+
+            if (p.keyPressed("c")) {
+              state.isDriving = true;
+              state.showControls = true;
+            }
+          }
+
+          // bed interaction
+          if (miner.x < 11) {
+            gui.interactBed();
+
+            if (p.keyPressed("c")) {
+              state.isAsleep = true;
+            }
+          }
+
+          // plant interaction
+          if (Math.abs(miner.x - plant.x) < 2) {
+            gui.interactPlant(plant);
+
+            if (p.keyPressed("c")) {
+              plant.water();
+            }
+
+            if (p.keyPressed("x")) {
+              miner.heldPlant = plant;
+            }
+          }
         }
       }
-    }
 
-    // show "collision detected" text
-    if (state.showDamageTimer > 0) {
-      state.showDamageTimer -= p.deltaTime;
-      gui.collided(ship);
+      // show "collision detected" text
+      if (state.showDamageTimer > 0) {
+        state.showDamageTimer -= p.deltaTime;
+        gui.collided(ship);
+      }
     }
 
     // create exterior camera projection
@@ -241,7 +267,23 @@ init({
       p.sprite(0, 0, sprites.frame[0]);
       plant.draw();
       miner.draw();
-      gui.draw();
+    }
+
+    // if (state.dreamBackdrop > 0) {
+    for (let x = 0; x < p.width; x++) {
+      for (let y = 0; y < p.height; y++) {
+        const dx = x - 4;
+        const dy = y - (p.height - 4);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        const b = 1 - state.dreamBackdrop;
+        const w = p.width;
+        const t = (dist + w - b * (p.width * 2)) / w;
+
+        if (dither(x, y, t)) {
+          p.pixel(x, y, light);
+        }
+      }
     }
 
     // reset if ship exploded
@@ -252,5 +294,7 @@ init({
         reset();
       }
     }
+
+    gui.draw();
   }
 });
