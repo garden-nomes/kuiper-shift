@@ -21,12 +21,12 @@ let shakeTimer = 0;
 
 function setupGameState() {
   const asteroids: Asteroid[] = [];
-  let particles: ExplosionParticle[] = [];
+  const particles: ExplosionParticle[] = [];
   const stars: number[][] = [];
+  const plants: Plant[] = [];
 
   const ship = new Ship();
   const miner = new Miner();
-  const plant = new Plant(21, 48);
   const gui = new Gui();
   const menu = new Menu(ship);
 
@@ -41,9 +41,9 @@ function setupGameState() {
     asteroids,
     stars,
     particles,
+    plants,
     ship,
     miner,
-    plant,
     gui,
     menu,
     isDriving,
@@ -81,6 +81,8 @@ function setupGameState() {
 
   menu.onBuyPlant = () => {
     console.log("congrats on ur new plant");
+    const plant = new Plant(Math.random() * (p.width - 4) + 2);
+    plants.push(plant);
   };
 
   return state;
@@ -97,7 +99,7 @@ init({
   showFps: import.meta.env.DEV,
 
   dimensions: [84, 48],
-  maxScale: 4,
+  maxScale: 6,
   crop: true,
 
   spritesheet,
@@ -109,7 +111,7 @@ init({
   },
 
   loop() {
-    const { ship, miner, plant, asteroids, particles, stars, gui, menu } = state;
+    const { ship, miner, plants, asteroids, particles, stars, gui, menu } = state;
 
     p.clear(state.dreamBackdrop < 1 ? dark : light);
 
@@ -130,7 +132,9 @@ init({
 
       ship.update();
       miner.update();
-      plant.update();
+      plants.forEach(p => p.update());
+      particles.forEach(p => p.update());
+      state.particles = particles.filter(p => !p.isDead);
 
       // ship/asteroid interactions
       if (ship.hullIntegrity > 0) {
@@ -167,9 +171,6 @@ init({
           }
         }
       }
-
-      particles.forEach(p => p.update());
-      state.particles = particles.filter(p => !p.isDead);
 
       if (state.isDriving) {
         // show controls until player starts moving
@@ -217,7 +218,9 @@ init({
           }
 
           // plant interaction
-          if (Math.abs(miner.x - plant.x) < 2) {
+          const plant = plants.find(p => Math.abs(miner.x - p.x) < 2);
+
+          if (plant) {
             gui.interactPlant(plant);
 
             if (p.keyPressed("c")) {
@@ -278,7 +281,7 @@ init({
       // draw interior
       if (ship.hullIntegrity > 0) {
         p.sprite(0, 0, sprites.frame[0]);
-        plant.draw();
+        plants.forEach(p => p.draw());
         miner.draw();
       }
 

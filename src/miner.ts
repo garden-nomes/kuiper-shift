@@ -1,13 +1,5 @@
 import { sprites } from "../asset-bundles";
 
-function getYPlacements(x: number) {
-  if (x < 12) return 0;
-  else if (x < 22) return 5;
-  else if (x < 74) return 0;
-  else if (x < 83) return 5;
-  else return 0;
-}
-
 export default class Miner {
   x = 2;
   flip = false;
@@ -40,7 +32,6 @@ export default class Miner {
     if (this.heldPlant) {
       this.heldPlant.x = this.flip ? this.x - 3 : this.x + 4;
       this.heldPlant.x = Math.min(Math.max(this.heldPlant.x, 2), p.width - 2);
-      this.heldPlant.y = p.height - getYPlacements(this.heldPlant.x);
     }
   }
 

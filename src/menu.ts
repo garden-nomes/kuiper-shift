@@ -147,6 +147,7 @@ export default class Menu {
 
   private buyPlant() {
     this.ship.credits -= this.plantCost;
+    this.onBuyPlant();
   }
 
   private continue() {

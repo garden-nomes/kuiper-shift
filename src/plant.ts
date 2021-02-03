@@ -11,7 +11,7 @@ export default class Plant {
   hydration = 1;
   sickly = 0;
 
-  constructor(public x: number, public y: number) {}
+  constructor(public x: number) {}
 
   update() {
     this.hydration -= p.deltaTime * 0.01;
@@ -22,6 +22,14 @@ export default class Plant {
 
     this.growth += p.deltaTime * 0.01 * Math.min(this.hydration, 1) * (1 - this.sickly);
     this.growth = Math.max(Math.min(this.growth, 1 - 10e-6), 0);
+  }
+
+  get y() {
+    if (this.x < 12) return p.height;
+    else if (this.x < 22) return p.height - 5;
+    else if (this.x < 74) return p.height;
+    else if (this.x < 83) return p.height - 5;
+    else return p.height;
   }
 
   state() {
