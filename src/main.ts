@@ -152,10 +152,14 @@ init({
                 particles.push(new ExplosionParticle(ship.pos));
               }
             }
-          } else if (state.showDamageTimer <= 0 && distSq < miningRadius * miningRadius) {
+          } else if (
+            state.showDamageTimer <= 0 &&
+            ship.ore < 1000 &&
+            distSq < miningRadius * miningRadius
+          ) {
             // mine asteroid
             asteroids[i].radius -= p.deltaTime * ship.miningRate;
-            ship.ore += p.deltaTime * 10;
+            ship.mine();
             mining.push(asteroids[i]);
 
             if (asteroids[i].radius <= 0) {
@@ -168,6 +172,8 @@ init({
             }
 
             gui.showMining(ship.ore);
+          } else if (ship.ore >= 1000) {
+            gui.holdFull();
           }
         }
       }

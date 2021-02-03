@@ -57,6 +57,11 @@ export default class Ship {
     this.pos = Vec3.add(this.pos, Vec3.scale(this.vel, p.deltaTime));
   }
 
+  mine() {
+    this.ore += p.deltaTime * 10;
+    this.ore = Math.min(this.ore, 1000);
+  }
+
   turn(pitch: number, yaw: number) {
     this.rot = Matrix.mult3x3(
       Matrix.pitch(pitch),
