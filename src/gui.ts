@@ -32,7 +32,7 @@ export default class Gui {
   }
 
   showDrivingControls() {
-    this.text = ["<z> forward", "<x> reverse", null, "<c> cancel"];
+    this.text = ["[z] forward", "[x] reverse", null, "[c] cancel"];
   }
 
   showShipState(ship: Ship) {
@@ -44,31 +44,31 @@ export default class Gui {
   }
 
   interactConsole() {
-    this.text = ["<c> drive"];
+    this.text = ["[c] drive"];
   }
 
   interactBed() {
-    this.text = ["<c> rest"];
+    this.text = ["[c] rest"];
   }
 
   interactPlant(plant: Plant) {
-    this.text = ["<c> water", "<x> move"];
-
     switch (plant.state()) {
       case PlantState.Happy:
-        this.text = [...this.text, null, "the plant", "looks happy"];
+        this.text = ["the plant", "looks happy"];
         break;
       case PlantState.Thirsty:
-        this.text = [...this.text, null, "the plant", "looks thirsty"];
+        this.text = ["the plant", "looks thirsty"];
         break;
       case PlantState.Sickly:
-        this.text = [...this.text, null, "the plant", "looks sickly"];
+        this.text = ["the plant", "looks sickly"];
         break;
     }
+
+    this.text = [...this.text, null, "[c] water", "[x] move"];
   }
 
   holdingPlant() {
-    this.text = ["<x> place"];
+    this.text = ["[x] place"];
   }
 
   collided(ship: Ship) {
@@ -78,9 +78,5 @@ export default class Gui {
     } else {
       this.text = [];
     }
-  }
-
-  asleep() {
-    this.text = ["<c> wake up"];
   }
 }
