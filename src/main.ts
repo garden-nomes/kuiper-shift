@@ -1,5 +1,5 @@
 import { init } from "pota-8";
-import * as SimplexNoise from "simplex-noise";
+import * as SimplexNoise_ from "simplex-noise";
 import fontSrc from "../assets/Gizmo199lightfont.png";
 import { sprites, spritesheet } from "../asset-bundles";
 import { Projection, Vec3 } from "./math";
@@ -12,6 +12,9 @@ import ExplosionParticle from "./explosion-particle";
 import Gui from "./gui";
 import dither from "./dither";
 import Menu from "./menu";
+
+// weird bundling issue
+const SimplexNoise = (SimplexNoise_ as any).default || SimplexNoise_;
 
 const noise = new SimplexNoise();
 let shakeTimer = 0;
@@ -90,6 +93,7 @@ function reset() {
 }
 
 init({
+  // @ts-ignore
   showFps: import.meta.env.DEV,
 
   dimensions: [84, 48],

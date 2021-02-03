@@ -4,10 +4,10 @@
   "scripts": {
     "dev": "vite",
     "dev:assets": "pota-8 bundle-assets -w ./assets",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "build:assets": "pota-8 bundle-assets ./assets",
     "serve": "vite preview",
-    "deploy": "vite build --base=/tiny-asteroid-miner/ && push-dir --dir=dist --branch=gh-pages --cleanup"
+    "deploy": "npm run build -- --base=/tiny-asteroid-miner/ && push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "devDependencies": {
     "push-dir": "^0.4.1",
