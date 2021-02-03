@@ -1,14 +1,15 @@
-import { init, TextAlign } from "pota-8";
+import { init } from "pota-8";
 import * as SimplexNoise from "simplex-noise";
 import fontSrc from "../assets/Gizmo199lightfont.png";
 import { sprites, spritesheet } from "../asset-bundles";
 import { Projection, Vec3 } from "./math";
-import Ship, { ShipState } from "./ship";
+import Ship from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
 import Asteroid from "./asteroid";
-import Plant, { PlantState } from "./plant";
+import Plant from "./plant";
 import ExplosionParticle from "./explosion-particle";
+import Gui from "./gui";
 
 const noise = new SimplexNoise();
 let shakeTimer = 0;
@@ -40,6 +41,7 @@ function setupGameState() {
   const ship = new Ship();
   const miner = new Miner();
   const plant = new Plant(21, 48);
+  const gui = new Gui();
 
   let isDriving = false;
   let showControls = false;
@@ -52,6 +54,7 @@ function setupGameState() {
     ship,
     miner,
     plant,
+    gui,
     isDriving,
     showControls,
     showDamageTimer
@@ -82,10 +85,10 @@ init({
   },
 
   loop() {
-    const { ship, miner, plant, asteroids, particles, stars } = state;
+    const { ship, miner, plant, asteroids, particles, stars, gui } = state;
     p.clear(dark);
 
-    let guiText = null;
+    gui.text = [];
 
     ship.hasControl = state.isDriving;
     miner.hasControl = !state.isDriving;
@@ -120,11 +123,7 @@ init({
           i--;
         }
 
-        guiText = ["mining", `ore: ${ship.ore.toFixed(0)}`];
-
-        if (p.elapsed % 1 < 2 / 3) {
-          guiText.push(null, "proximity", "warning");
-        }
+        gui.showMining(ship.ore);
       }
     }
 
@@ -134,7 +133,7 @@ init({
     if (state.isDriving) {
       // show controls until player starts moving
       if (state.showControls) {
-        guiText = ["<z> forward", "<x> reverse", null, "<c> cancel"];
+        gui.showDrivingControls();
       }
 
       if (state.showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
@@ -142,12 +141,8 @@ init({
       }
 
       // add titles
-      if (!guiText) {
-        if (ship.state === ShipState.Accelerating) {
-          guiText = ["accelerating"];
-        } else if (ship.state === ShipState.Braking) {
-          guiText = ["braking"];
-        }
+      if (!gui.text) {
+        gui.showShipState(ship);
       }
 
       // cancel driving
@@ -155,7 +150,8 @@ init({
     } else {
       // add console interaction
       if (miner.x > 36 && miner.x < 50) {
-        guiText = ["<c> drive"];
+        gui.interactConsole();
+
         if (p.keyPressed("c")) {
           state.isDriving = true;
           state.showControls = true;
@@ -164,19 +160,7 @@ init({
 
       // plant interaction
       if (!miner.heldPlant && Math.abs(miner.x - plant.x) < 2) {
-        guiText = ["<c> water", "<x> move"];
-
-        switch (plant.state()) {
-          case PlantState.Happy:
-            guiText = [...guiText, null, "the plant", "looks happy"];
-            break;
-          case PlantState.Thirsty:
-            guiText = [...guiText, null, "the plant", "looks thirsty"];
-            break;
-          case PlantState.Sickly:
-            guiText = [...guiText, null, "the plant", "looks sickly"];
-            break;
-        }
+        gui.interactPlant(plant);
 
         if (p.keyPressed("c")) {
           plant.water();
@@ -186,7 +170,7 @@ init({
           miner.heldPlant = plant;
         }
       } else if (miner.heldPlant) {
-        guiText = ["<x> place"];
+        gui.holdingPlant();
 
         if (p.keyPressed("x")) {
           miner.heldPlant = null;
@@ -197,13 +181,7 @@ init({
     // show "collision detected" text
     if (state.showDamageTimer > 0) {
       state.showDamageTimer -= p.deltaTime;
-
-      if (p.elapsed % 0.5 < 2 / 6) {
-        const hullIntegrity = `${(ship.hullIntegrity * 100).toFixed(0)}%`;
-        guiText = ["collision", "detected", null, "hull: " + hullIntegrity];
-      } else {
-        guiText = null;
-      }
+      gui.collided(ship);
     }
 
     const projection = new Projection(ship.pos, ship.rot, p.width / 2);
@@ -239,20 +217,6 @@ init({
     p.sprite(0, 0, sprites.frame[0]);
     plant.draw();
     miner.draw();
-
-    if (guiText) {
-      let y = 6;
-      for (const line of guiText) {
-        if (!line) {
-          y += 3;
-          continue;
-        }
-
-        const w = p.textWidth(line);
-        p.rect(p.width / 2 - Math.floor(w / 2) - 1, y - 1, w + 2, 7, dark);
-        p.text(line, p.width / 2, y, { color: light, align: TextAlign.Center });
-        y += 6;
-      }
-    }
+    gui.draw();
   }
 });
