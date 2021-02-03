@@ -22,6 +22,8 @@ export default class Ship {
   hullIntegrity = 1;
 
   update() {
+    if (this.hullIntegrity <= 0) return;
+
     this.state = ShipState.Idle;
 
     if (this.hasControl) {
@@ -82,7 +84,7 @@ export default class Ship {
     );
 
     if (Vec3.magSq(this.vel) > this.damageThreshold * this.damageThreshold) {
-      this.hullIntegrity -= 0.1;
+      this.hullIntegrity -= 0.25;
       this.onDamage();
     }
   }

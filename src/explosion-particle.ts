@@ -8,7 +8,7 @@ export default class ExplosionParticle {
 
   constructor(private pos: number[]) {
     this.vel = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
-    this.vel = Vec3.scale(Vec3.normalize(this.vel), Math.random() + 0.5);
+    this.vel = Vec3.scale(Vec3.normalize(this.vel), Math.random() * 3 + 0.5);
   }
 
   update() {

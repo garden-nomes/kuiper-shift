@@ -46,6 +46,7 @@ function setupGameState() {
   let isDriving = false;
   let showControls = false;
   let showDamageTimer = 0;
+  let deadTimer = 0;
 
   const state = {
     asteroids,
@@ -57,7 +58,8 @@ function setupGameState() {
     gui,
     isDriving,
     showControls,
-    showDamageTimer
+    showDamageTimer,
+    deadTimer
   };
 
   ship.onDamage = () => {
@@ -67,7 +69,11 @@ function setupGameState() {
   return state;
 }
 
-export const state = setupGameState();
+export let state = setupGameState();
+
+function reset() {
+  state = setupGameState();
+}
 
 init({
   showFps: import.meta.env.DEV,
@@ -86,6 +92,7 @@ init({
 
   loop() {
     const { ship, miner, plant, asteroids, particles, stars, gui } = state;
+
     p.clear(dark);
 
     gui.text = [];
@@ -97,33 +104,42 @@ init({
     miner.update();
     plant.update();
 
+    // track currently mining asteroids (there can be more than one)
     const mining = [];
 
-    for (let i = 0; i < asteroids.length; i++) {
-      const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
-      const radius = asteroids[i].radius;
-      const { miningDistance, miningRate } = ship;
+    // ship/asteroid interactions
+    if (ship.hullIntegrity > 0) {
+      for (let i = 0; i < asteroids.length; i++) {
+        const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
+        const radius = asteroids[i].radius;
+        const miningRadius = radius + ship.miningDistance;
 
-      if (distSq < radius * radius) {
-        ship.collideWithAsteroid(asteroids[i]);
-      } else if (
-        state.showDamageTimer <= 0 &&
-        distSq < (radius + miningDistance) * (radius + miningDistance)
-      ) {
-        asteroids[i].radius -= p.deltaTime * miningRate;
-        ship.ore += p.deltaTime * 10;
-        mining.push(asteroids[i]);
+        if (distSq < radius * radius) {
+          // collision with asteroid
+          ship.collideWithAsteroid(asteroids[i]);
 
-        if (asteroids[i].radius <= 0) {
-          for (let j = 0; j < 10; j++) {
-            particles.push(new ExplosionParticle(asteroids[i].pos));
+          if (ship.hullIntegrity <= 0) {
+            for (let j = 0; j < 10; j++) {
+              particles.push(new ExplosionParticle(ship.pos));
+            }
+          }
+        } else if (state.showDamageTimer <= 0 && distSq < miningRadius * miningRadius) {
+          // mine asteroid
+          asteroids[i].radius -= p.deltaTime * ship.miningRate;
+          ship.ore += p.deltaTime * 10;
+          mining.push(asteroids[i]);
+
+          if (asteroids[i].radius <= 0) {
+            for (let j = 0; j < 10; j++) {
+              particles.push(new ExplosionParticle(asteroids[i].pos));
+            }
+
+            asteroids.splice(i, 1);
+            i--;
           }
 
-          asteroids.splice(i, 1);
-          i--;
+          gui.showMining(ship.ore);
         }
-
-        gui.showMining(ship.ore);
       }
     }
 
@@ -184,8 +200,10 @@ init({
       gui.collided(ship);
     }
 
+    // create exterior camera projection
     const projection = new Projection(ship.pos, ship.rot, p.width / 2);
 
+    // draw stars
     for (const starPos of stars) {
       const [sx, sy, sz] = projection.projectToScreen(starPos);
       if (sz > 0) {
@@ -200,23 +218,39 @@ init({
     const shakeY = noise.noise2D(10e5, shakeTimer) * (1 + dmgShake * 0.5);
     p.center(p.width / 2 + shakeX, p.height / 2 + shakeY);
 
+    // draw asteroids/particles
     asteroids.forEach(a => a.draw(projection));
     particles.forEach(p => p.draw(projection));
 
     // draw mining lasers
-    mining.forEach(asteroid => {
-      const [x1, y1] = projection.projectToScreen(asteroid.pos);
-      p.line(0, p.height, x1, y1, light);
-      p.line(0, p.height - 1, x1, y1 - 1, dark);
-      p.line(p.width, p.height, x1, y1, light);
-      p.line(p.width, p.height - 1, x1, y1 - 1, dark);
-    });
+    if (ship.hullIntegrity > 0) {
+      mining.forEach(asteroid => {
+        const [x1, y1] = projection.projectToScreen(asteroid.pos);
+        p.line(0, p.height, x1, y1, light);
+        p.line(0, p.height - 1, x1, y1 - 1, dark);
+        p.line(p.width, p.height, x1, y1, light);
+        p.line(p.width, p.height - 1, x1, y1 - 1, dark);
+      });
+    }
 
-    // draw foreground
+    // undo screen shake for interior
     p.center(p.width / 2, p.height / 2);
-    p.sprite(0, 0, sprites.frame[0]);
-    plant.draw();
-    miner.draw();
-    gui.draw();
+
+    // draw interior
+    if (ship.hullIntegrity > 0) {
+      p.sprite(0, 0, sprites.frame[0]);
+      plant.draw();
+      miner.draw();
+      gui.draw();
+    }
+
+    // reset if ship exploded
+    if (ship.hullIntegrity <= 0) {
+      state.deadTimer += p.deltaTime;
+
+      if (state.deadTimer > 3) {
+        reset();
+      }
+    }
   }
 });
