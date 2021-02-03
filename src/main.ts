@@ -121,9 +121,9 @@ init({
     const mining = [];
 
     if (state.dreamBackdrop > 0 && !state.isAsleep) {
-      state.dreamBackdrop -= p.deltaTime;
+      state.dreamBackdrop -= p.deltaTime * 0.5;
     } else if (state.dreamBackdrop < 1 && state.isAsleep) {
-      state.dreamBackdrop += p.deltaTime;
+      state.dreamBackdrop += p.deltaTime * 0.5;
     } else if (state.isAsleep) {
       menu.loop();
     } else {
@@ -283,19 +283,19 @@ init({
         p.sprite(0, 0, sprites.frame[0]);
         plants.forEach(p => p.draw());
         miner.draw();
+        gui.draw();
       }
 
       // draw the fade in/out effect
       if (state.dreamBackdrop > 0) {
         for (let x = 0; x < p.width; x++) {
           for (let y = 0; y < p.height; y++) {
-            const dx = x - 4;
+            const dx = x - 8;
             const dy = y - (p.height - 4);
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            const b = 1 - state.dreamBackdrop;
-            const w = p.width;
-            const t = (dist + w - b * (p.width * 2)) / w;
+            const w = 40;
+            const t = (dist + w - (1 - state.dreamBackdrop) * (p.width * 2)) / w;
 
             if (dither(x, y, t)) {
               p.pixel(x, y, light);
@@ -313,7 +313,5 @@ init({
         reset();
       }
     }
-
-    gui.draw();
   }
 });
