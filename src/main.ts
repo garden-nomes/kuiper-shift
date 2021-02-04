@@ -340,6 +340,12 @@ init({
         }
 
         p.sprite(0, 0, sprites.frame[0]);
+
+        if (state.isDriving) {
+          const screen = sprites.screen[~~(p.elapsed / 2) % sprites.screen.length];
+          p.sprite(39, 36, screen);
+        }
+
         plants.forEach(p => p.draw());
         miner.draw();
         gui.draw();
