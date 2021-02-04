@@ -25,10 +25,6 @@ export default class Gui {
 
   showMining(ore: number) {
     this.text = ["mining", `ore: ${ore.toFixed(0)}/1000`];
-
-    if (p.elapsed % 1 < 2 / 3) {
-      this.text.push(null, "proximity", "warning");
-    }
   }
 
   holdFull() {
