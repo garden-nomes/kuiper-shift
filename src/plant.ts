@@ -34,10 +34,10 @@ export default class Plant {
   }
 
   get y() {
-    if (this.x < 12) return p.height;
-    else if (this.x < 22) return p.height - 5;
-    else if (this.x < 74) return p.height;
-    else if (this.x < 83) return p.height - 5;
+    if (this.x < 22) return p.height;
+    else if (this.x < 32) return p.height - 5;
+    else if (this.x < 70) return p.height;
+    else if (this.x < 79) return p.height - 5;
     else return p.height;
   }
 
