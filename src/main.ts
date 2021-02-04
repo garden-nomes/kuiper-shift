@@ -13,6 +13,8 @@ import Gui from "./gui";
 import dither from "./dither";
 import Menu from "./menu";
 
+const isDev = import.meta.env.DEV;
+
 // weird bundling issue
 const SimplexNoise: typeof SimplexNoise_ =
   (SimplexNoise_ as any).default || SimplexNoise_;
@@ -95,8 +97,7 @@ function reset() {
 }
 
 init({
-  // @ts-ignore
-  showFps: import.meta.env.DEV,
+  showFps: isDev,
 
   dimensions: [84, 48],
   maxScale: 6,
