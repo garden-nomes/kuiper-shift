@@ -116,6 +116,9 @@ init({
 
     p.clear(state.dreamBackdrop < 1 ? dark : light);
 
+    // screen center
+    const [cx, cy] = [p.width / 2, p.height / 2];
+
     gui.text = [];
 
     // cheats
@@ -294,7 +297,6 @@ init({
 
       // draw mining lasers
       if (isMining) {
-        const [cx, cy] = [p.width / 2, p.height / 2];
         p.line(0, p.height, cx, cy, light);
         p.line(0, p.height - 1, cx, cy - 1, dark);
         p.line(p.width, p.height, cx, cy, light);
@@ -311,10 +313,13 @@ init({
         miner.draw();
         gui.draw();
 
+        // draw HUD
         if (state.isDriving) {
+          // speed bar
           const speedBarHeight = Math.min(Math.log(ship.speed + 1) * 16, 28);
           p.line(3, p.height - 11, 3, p.height - 11 - speedBarHeight, light);
 
+          // proximity meter
           if (asteroidDistance !== null) {
             const proximityHeight = Math.min(Math.log(asteroidDistance + 1) * 16 - 1, 28);
             const flashing = asteroidDistance < ship.miningDistance;
@@ -328,7 +333,7 @@ init({
             );
           }
 
-          // add tick mark for mining distance
+          // proximity meter tick mark for mining distance
           const tickHeight = Math.min(Math.log(ship.miningDistance + 1) * 16 - 1, 28);
           p.line(
             p.width - 7,
@@ -337,6 +342,11 @@ init({
             p.height - 11 - tickHeight,
             light
           );
+
+          // reticle
+          const c = closestAsteroid === null ? light : dark;
+          p.line(cx - 1, cy - 1, cx + 1, cy - 1, c);
+          p.line(cx, cy - 2, cx, cy, c);
         }
       }
 
