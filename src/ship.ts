@@ -13,8 +13,9 @@ export default class Ship {
   pos = [0, 0, 0];
   vel = [0, 0, 0];
   hasControl = false;
-  miningDistance = 0.2;
-  miningRate = 0.025;
+  miningDistance = 0.4;
+  asteroidShrinkRate = 0.1;
+  miningRate = 50;
   state = ShipState.Idle;
   ore = 0;
   credits = 0;
@@ -58,7 +59,7 @@ export default class Ship {
   }
 
   mine() {
-    this.ore += p.deltaTime * 10;
+    this.ore += p.deltaTime * this.miningRate;
     this.ore = Math.min(this.ore, 1000);
   }
 

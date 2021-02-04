@@ -13,7 +13,7 @@ export default class Menu {
   selected = MenuOption.Repair;
   oreToCredits = 0.1;
   totalHullRepairCost = 1000;
-  plantCost = 50;
+  plantCost = 30;
   onBuyPlant: () => any = () => {};
   onContinue: () => any = () => {};
 

@@ -158,7 +158,7 @@ init({
             distSq < miningRadius * miningRadius
           ) {
             // mine asteroid
-            asteroids[i].radius -= p.deltaTime * ship.miningRate;
+            asteroids[i].radius -= p.deltaTime * ship.asteroidShrinkRate;
             ship.mine();
             mining.push(asteroids[i]);
 
