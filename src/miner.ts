@@ -6,6 +6,7 @@ export default class Miner {
   walkAnimTimer = 0;
   hasControl = true;
   heldPlant: any = null;
+  moveRightOverride = false;
 
   update() {
     const px = this.x;
@@ -17,6 +18,10 @@ export default class Miner {
 
       // keep onscreen
       this.x = Math.min(Math.max(this.x, 1), p.width - 2);
+    }
+
+    if (this.moveRightOverride) {
+      this.x += p.deltaTime * 32;
     }
 
     // update animation state

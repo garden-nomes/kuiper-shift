@@ -139,6 +139,15 @@ init({
 
     if (state.dreamBackdrop > 0 && !state.isAsleep) {
       state.dreamBackdrop -= p.deltaTime;
+
+      // animate miner moving away from bed
+      if (state.dreamBackdrop < 0.3) {
+        miner.moveRightOverride = true;
+        miner.hasControl = false;
+        miner.update();
+      } else {
+        miner.x = 4;
+      }
     } else if (state.dreamBackdrop < 1 && state.isAsleep) {
       state.dreamBackdrop += p.deltaTime;
     } else if (state.isAsleep) {
@@ -147,6 +156,7 @@ init({
     } else {
       ship.hasControl = state.isDriving;
       miner.hasControl = !state.isDriving;
+      miner.moveRightOverride = false;
 
       ship.update();
       miner.update();
