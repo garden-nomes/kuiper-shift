@@ -208,6 +208,7 @@ init({
         ship.mine(closestAsteroid);
 
         if (closestAsteroid.radius <= 0) {
+          audio.playOneShot("thud");
           asteroids.splice(asteroids.indexOf(closestAsteroid), 1);
         }
 
@@ -357,13 +358,13 @@ init({
       }
     }
 
-    // audio
+    // background audio
     audio.setBackground(null);
 
     if (isMining) {
       audio.setBackground("laser", 0.5);
     } else if (ship.isMoving) {
-      const volume = Math.min(Vec3.magSq(ship.vel), 1);
+      const volume = Math.min(Vec3.magSq(ship.vel), 3);
       audio.setBackground("rumble", volume);
     }
 
