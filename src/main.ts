@@ -12,6 +12,7 @@ import ExplosionParticle from "./explosion-particle";
 import Gui from "./gui";
 import dither from "./dither";
 import Menu from "./menu";
+import drawHud from "./draw-hud";
 
 const isDev = import.meta.env.DEV;
 
@@ -295,59 +296,19 @@ init({
       asteroids.forEach(a => a.draw(projection));
       particles.forEach(p => p.draw(projection));
 
-      // draw mining lasers
-      if (isMining) {
-        p.line(0, p.height, cx, cy, light);
-        p.line(0, p.height - 1, cx, cy - 1, dark);
-        p.line(p.width, p.height, cx, cy, light);
-        p.line(p.width, p.height - 1, cx, cy - 1, dark);
-      }
-
       // undo screen shake for interior
       p.center(p.width / 2, p.height / 2);
 
       // draw interior
       if (ship.hullIntegrity > 0) {
+        if (state.isDriving) {
+          drawHud(ship, asteroidDistance, isMining);
+        }
+
         p.sprite(0, 0, sprites.frame[0]);
         plants.forEach(p => p.draw());
         miner.draw();
         gui.draw();
-
-        // draw HUD
-        if (state.isDriving) {
-          // speed bar
-          const speedBarHeight = Math.min(Math.log(ship.speed + 1) * 16, 28);
-          p.line(3, p.height - 11, 3, p.height - 11 - speedBarHeight, light);
-
-          // proximity meter
-          if (asteroidDistance !== null) {
-            const proximityHeight = Math.min(Math.log(asteroidDistance + 1) * 16 - 1, 28);
-            const flashing = asteroidDistance < ship.miningDistance;
-
-            p.line(
-              p.width - 4,
-              p.height - 11,
-              p.width - 4,
-              p.height - 11 - proximityHeight,
-              flashing && p.frame % 2 === 0 ? dark : light
-            );
-          }
-
-          // proximity meter tick mark for mining distance
-          const tickHeight = Math.min(Math.log(ship.miningDistance + 1) * 16 - 1, 28);
-          p.line(
-            p.width - 7,
-            p.height - 11 - tickHeight,
-            p.width - 6,
-            p.height - 11 - tickHeight,
-            light
-          );
-
-          // reticle
-          const c = closestAsteroid === null ? light : dark;
-          p.line(cx - 1, cy - 1, cx + 1, cy - 1, c);
-          p.line(cx, cy - 2, cx, cy, c);
-        }
       }
 
       // draw the fade in/out effect
