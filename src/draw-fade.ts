@@ -19,9 +19,9 @@ export default function drawFade(
         const w = 40;
 
         if (invert) {
-          t = (opacity * (p.width * 2) - dist - w) / w;
+          t = (opacity * (p.width + w) - dist - w) / w;
         } else {
-          t = (dist + w - opacity * (p.width * 2)) / w;
+          t = (dist + w - opacity * (p.width + w)) / w;
         }
       }
 

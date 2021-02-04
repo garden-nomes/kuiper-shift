@@ -39,6 +39,7 @@ function setupGameState() {
   let showControls = false;
   let showDamageTimer = 0;
   let deadTimer = 0;
+  let menuFadeInTimer = 0;
   let dreamBackdrop = 1;
   let isAsleep = false;
 
@@ -56,7 +57,8 @@ function setupGameState() {
     showDamageTimer,
     deadTimer,
     dreamBackdrop,
-    isAsleep
+    isAsleep,
+    menuFadeInTimer
   };
 
   for (let i = 0; i < 100; i++) {
@@ -122,9 +124,6 @@ init({
 
     p.clear(state.dreamBackdrop < 1 ? dark : light);
 
-    // screen center
-    const [cx, cy] = [p.width / 2, p.height / 2];
-
     gui.text = [];
 
     // cheats
@@ -139,11 +138,12 @@ init({
     let isMining = false;
 
     if (state.dreamBackdrop > 0 && !state.isAsleep) {
-      state.dreamBackdrop -= p.deltaTime * 0.5;
+      state.dreamBackdrop -= p.deltaTime;
     } else if (state.dreamBackdrop < 1 && state.isAsleep) {
-      state.dreamBackdrop += p.deltaTime * 0.5;
+      state.dreamBackdrop += p.deltaTime;
     } else if (state.isAsleep) {
       menu.loop();
+      state.menuFadeInTimer += p.deltaTime;
     } else {
       ship.hasControl = state.isDriving;
       miner.hasControl = !state.isDriving;
@@ -256,6 +256,7 @@ init({
             if (p.keyPressed("c")) {
               menu.reset();
               state.isAsleep = true;
+              state.menuFadeInTimer = 0;
               audio.playOneShot("sleep");
             }
           }
@@ -323,11 +324,14 @@ init({
         miner.draw();
         gui.draw();
       }
+    }
+    // draw the fade in/out effect
+    if (state.dreamBackdrop > 0 && state.dreamBackdrop < 1) {
+      drawFade(1 - state.dreamBackdrop, light, [8, p.height - 4]);
+    }
 
-      // draw the fade in/out effect
-      if (state.dreamBackdrop > 0) {
-        drawFade(1 - state.dreamBackdrop, light, [8, p.height - 4]);
-      }
+    if (state.menuFadeInTimer > 0 && state.menuFadeInTimer < 0.5) {
+      drawFade(1 - state.menuFadeInTimer * 2, light);
     }
 
     // reset if ship exploded
