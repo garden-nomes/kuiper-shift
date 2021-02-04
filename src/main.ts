@@ -13,8 +13,10 @@ import Gui from "./gui";
 import Menu from "./menu";
 import drawHud from "./draw-hud";
 import drawFade from "./draw-fade";
+import Audio from "./audio";
 
 const isDev = import.meta.env.DEV;
+const audio = new Audio();
 
 // weird bundling issue
 const SimplexNoise: typeof SimplexNoise_ =
@@ -77,6 +79,8 @@ function setupGameState() {
 
   ship.onDamage = () => {
     state.showDamageTimer = 2;
+    audio.play("crash");
+    audio.volume(1);
   };
 
   menu.onContinue = () => {
@@ -327,6 +331,25 @@ init({
 
       if (state.deadTimer > 3) {
         reset();
+      }
+    }
+
+    // audio
+    if (!audio.isPlaying("crash")) {
+      if (isMining) {
+        if (!audio.isPlaying("laser")) audio.play("laser", true);
+        audio.volume(0.25);
+      } else {
+        if (audio.isPlaying("laser")) {
+          audio.stop();
+        }
+
+        if (ship.isMoving && ship.hullIntegrity > 0) {
+          if (!audio.isPlaying("rumble")) audio.play("rumble", true);
+          audio.volume(Math.min(Vec3.magSq(ship.vel), 1));
+        } else if (audio.isPlaying("rumble")) {
+          audio.stop();
+        }
       }
     }
   }

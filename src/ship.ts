@@ -107,4 +107,8 @@ export default class Ship {
   get forward() {
     return Matrix.mult3x3vec(this.rot, [0, 0, 1]);
   }
+
+  get isMoving() {
+    return Vec3.magSq(this.vel) > 0;
+  }
 }
