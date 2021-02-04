@@ -117,11 +117,16 @@ init({
 
     gui.text = [];
 
-    // track currently mining asteroids (there can be more than one)
-    const mining = [];
+    // cheats
+    if (isDev && p.keyPressed("space")) {
+      ship.credits += 10;
+      ship.ore += 100;
+    }
 
     // track closest asteroid for GUI
-    let asteroidDistance = null;
+    let asteroidDistance: number | null = null;
+    let closestAsteroid: Asteroid | null = null;
+    let isMining = false;
 
     if (state.dreamBackdrop > 0 && !state.isAsleep) {
       state.dreamBackdrop -= p.deltaTime * 0.5;
@@ -142,27 +147,26 @@ init({
       // ship/asteroid interactions
       if (ship.hullIntegrity > 0) {
         for (let i = 0; i < asteroids.length; i++) {
-          const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
-          const radius = asteroids[i].radius;
-          const miningRadius = ship.miningDistance;
-
+          // racast asteroid, update closest
           const raycast = raycastSphere(
             ship.pos,
             ship.forward,
             asteroids[i].pos,
-            asteroids[i].radius
+            asteroids[i].radius + 0.1
           );
 
-          // update closest asteroid
           if (
             raycast !== null &&
             (asteroidDistance === null || raycast < asteroidDistance)
           ) {
             asteroidDistance = raycast;
+            closestAsteroid = asteroids[i];
           }
 
+          // collide with asteroid
+          const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
+          const radius = asteroids[i].radius;
           if (distSq < radius * radius) {
-            // collision with asteroid
             ship.collideWithAsteroid(asteroids[i]);
 
             if (ship.hullIntegrity <= 0) {
@@ -170,30 +174,24 @@ init({
                 particles.push(new ExplosionParticle(ship.pos));
               }
             }
-          } else if (
-            state.showDamageTimer <= 0 &&
-            ship.ore < 1000 &&
-            distSq < miningRadius * miningRadius
-          ) {
-            // mine asteroid
-            asteroids[i].radius -= p.deltaTime * ship.asteroidShrinkRate;
-            ship.mine();
-            mining.push(asteroids[i]);
-
-            if (asteroids[i].radius <= 0) {
-              for (let j = 0; j < 10; j++) {
-                particles.push(new ExplosionParticle(asteroids[i].pos));
-              }
-
-              asteroids.splice(i, 1);
-              i--;
-            }
-
-            gui.showMining(ship.ore);
-          } else if (ship.ore >= 1000) {
-            gui.holdFull();
           }
         }
+      }
+
+      const canMine = state.showDamageTimer <= 0 && ship.ore < 1000;
+      const isAsteroidInRange =
+        asteroidDistance !== null && asteroidDistance <= ship.miningDistance;
+      isMining = canMine && isAsteroidInRange;
+
+      // mine asteroid if within range
+      if (isMining) {
+        ship.mine(closestAsteroid);
+
+        if (closestAsteroid.radius <= 0) {
+          asteroids.splice(asteroids.indexOf(closestAsteroid), 1);
+        }
+
+        gui.showMining(ship.ore);
       }
 
       if (state.isDriving) {
@@ -209,6 +207,11 @@ init({
         // add titles
         if (!gui.text.length) {
           gui.showShipState(ship);
+        }
+
+        // show "hold full" message
+        if (ship.ore >= 1000) {
+          gui.holdFull();
         }
 
         // cancel driving
@@ -289,14 +292,12 @@ init({
       particles.forEach(p => p.draw(projection));
 
       // draw mining lasers
-      if (ship.hullIntegrity > 0) {
-        mining.forEach(asteroid => {
-          const [x1, y1] = projection.projectToScreen(asteroid.pos);
-          p.line(0, p.height, x1, y1, light);
-          p.line(0, p.height - 1, x1, y1 - 1, dark);
-          p.line(p.width, p.height, x1, y1, light);
-          p.line(p.width, p.height - 1, x1, y1 - 1, dark);
-        });
+      if (isMining) {
+        const [cx, cy] = [p.width / 2, p.height / 2];
+        p.line(0, p.height, cx, cy, light);
+        p.line(0, p.height - 1, cx, cy - 1, dark);
+        p.line(p.width, p.height, cx, cy, light);
+        p.line(p.width, p.height - 1, cx, cy - 1, dark);
       }
 
       // undo screen shake for interior
@@ -315,7 +316,7 @@ init({
 
           if (asteroidDistance !== null) {
             const proximityHeight = Math.min(Math.log(asteroidDistance + 1) * 16 - 1, 28);
-            const flashing = asteroidDistance < 0.5;
+            const flashing = asteroidDistance < ship.miningDistance;
 
             p.line(
               p.width - 4,
@@ -325,6 +326,16 @@ init({
               flashing && p.frame % 2 === 0 ? dark : light
             );
           }
+
+          // add tick mark for mining distance
+          const tickHeight = Math.min(Math.log(ship.miningDistance + 1) * 16 - 1, 28);
+          p.line(
+            p.width - 7,
+            p.height - 11 - tickHeight,
+            p.width - 6,
+            p.height - 11 - tickHeight,
+            light
+          );
         }
       }
 

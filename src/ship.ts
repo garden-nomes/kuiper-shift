@@ -58,7 +58,8 @@ export default class Ship {
     this.pos = Vec3.add(this.pos, Vec3.scale(this.vel, p.deltaTime));
   }
 
-  mine() {
+  mine(asteroid: Asteroid) {
+    asteroid.radius -= p.deltaTime * this.asteroidShrinkRate;
     this.ore += p.deltaTime * this.miningRate;
     this.ore = Math.min(this.ore, 1000);
   }
