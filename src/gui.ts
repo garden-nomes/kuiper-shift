@@ -28,7 +28,7 @@ export default class Gui {
   }
 
   holdFull() {
-    this.text = ["cargo hold full", null, "time to rest"];
+    this.text = ["cargo", "hold full", null, "time to", "rest"];
   }
 
   showDrivingControls() {

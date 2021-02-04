@@ -42,6 +42,7 @@ function setupGameState() {
   let menuFadeInTimer = 0;
   let dreamBackdrop = 1;
   let isAsleep = false;
+  let holdFullBeepTimer = 0;
 
   const state = {
     asteroids,
@@ -58,7 +59,8 @@ function setupGameState() {
     deadTimer,
     dreamBackdrop,
     isAsleep,
-    menuFadeInTimer
+    menuFadeInTimer,
+    holdFullBeepTimer
   };
 
   for (let i = 0; i < 100; i++) {
@@ -233,6 +235,12 @@ init({
         // show "hold full" message
         if (ship.ore >= 1000) {
           gui.holdFull();
+
+          state.holdFullBeepTimer -= p.deltaTime;
+          if (state.holdFullBeepTimer <= 0) {
+            audio.playOneShot("three-beep");
+            state.holdFullBeepTimer = 3;
+          }
         }
 
         // cancel driving
@@ -268,6 +276,7 @@ init({
               menu.reset();
               state.isAsleep = true;
               state.menuFadeInTimer = 0;
+              state.holdFullBeepTimer = 0;
               audio.playOneShot("sleep");
             }
           }
