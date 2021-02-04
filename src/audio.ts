@@ -2,12 +2,15 @@ import { audiosprite, sounds } from "../asset-bundles";
 
 export type Sound = keyof typeof sounds;
 
-export default class Audio {
+export class Audio {
   private ctx: AudioContext;
   private gain: GainNode;
   private source: AudioBufferSourceNode | null = null;
+  private buffer: AudioBuffer | null = null;
+
+  private background: [Sound, number] | null = null;
+  private oneShot: [Sound, number] | null = null;
   private playing: Sound | null = null;
-  buffer: AudioBuffer | null = null;
 
   constructor() {
     this.ctx = new AudioContext();
@@ -22,16 +25,37 @@ export default class Audio {
       .then(buffer => this.ctx.decodeAudioData(buffer));
   }
 
-  isPlaying(sound: Sound) {
-    return this.playing === sound;
+  update() {
+    const shouldPlay = this.oneShot || this.background;
+    const isBackground = !this.oneShot;
+
+    if (shouldPlay && this.playing !== null) {
+      const [sound, volume] = shouldPlay;
+
+      this.volume(volume);
+      if (this.playing !== sound) {
+        this.disconnectSource();
+        this.play(sound, isBackground);
+      }
+    } else if (shouldPlay) {
+      const [sound, volume] = shouldPlay;
+      this.volume(volume);
+      this.play(sound, isBackground);
+    } else if (this.playing) {
+      this.disconnectSource();
+    }
   }
 
-  play(sound: Sound, loop = false) {
-    if (!this.buffer) return;
+  playOneShot(sound: Sound, volume: number = 1) {
+    this.oneShot = [sound, volume];
+  }
 
-    if (this.source !== null) {
-      this.stop();
-    }
+  setBackground(sound: Sound | null, volume: number = 1) {
+    this.background = sound === null ? null : [sound, volume];
+  }
+
+  private play(sound: Sound, loop = false) {
+    if (!this.buffer) return;
 
     this.source = this.ctx.createBufferSource();
     this.source.buffer = this.buffer;
@@ -45,21 +69,22 @@ export default class Audio {
       this.source.loopEnd = end;
       this.source.start(0, start);
     } else {
-      this.source.loop = false;
       this.source.start(0, start, end - start);
+
+      this.source.addEventListener("ended", () => {
+        this.oneShot = null;
+        this.disconnectSource();
+      });
     }
 
     this.playing = sound;
-    this.source.addEventListener("ended", () => {
-      this.stop();
-    });
   }
 
-  volume(volume: number) {
+  private volume(volume: number) {
     this.gain.gain.setValueAtTime(volume, this.ctx.currentTime);
   }
 
-  stop() {
+  private disconnectSource() {
     if (this.source !== null) {
       this.source.disconnect();
       this.source = null;
@@ -67,3 +92,5 @@ export default class Audio {
     }
   }
 }
+
+export default new Audio();

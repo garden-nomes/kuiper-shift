@@ -1,6 +1,7 @@
 import { TextAlign } from "pota-8";
 import Ship from "./ship";
 import { light, dark } from "./colors";
+import audio from "./audio";
 
 export enum MenuOption {
   Repair,
@@ -33,6 +34,8 @@ export default class Menu {
       this.selected = (this.selected + 1 + 4) % 4;
     }
 
+    const previous = this.selected;
+
     if (p.keyPressed("down")) {
       this.selected = (this.selected + 1) % 4;
       while (this.isDisabled(this.selected)) {
@@ -47,16 +50,23 @@ export default class Menu {
       }
     }
 
+    if (this.selected !== previous) {
+      audio.playOneShot("blip-3");
+    }
+
     if (p.keyPressed("c")) {
       switch (this.selected) {
         case MenuOption.Repair:
           this.repair();
+          audio.playOneShot("blip-0");
           break;
         case MenuOption.SellOre:
           this.sellOre();
+          audio.playOneShot("blip-0");
           break;
         case MenuOption.BuyPlant:
           this.buyPlant();
+          audio.playOneShot("blip-0");
           break;
         case MenuOption.Continue:
           this.continue();

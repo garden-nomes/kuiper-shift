@@ -13,10 +13,9 @@ import Gui from "./gui";
 import Menu from "./menu";
 import drawHud from "./draw-hud";
 import drawFade from "./draw-fade";
-import Audio from "./audio";
+import audio from "./audio";
 
 const isDev = import.meta.env.DEV;
-const audio = new Audio();
 
 // weird bundling issue
 const SimplexNoise: typeof SimplexNoise_ =
@@ -79,18 +78,20 @@ function setupGameState() {
 
   ship.onDamage = () => {
     state.showDamageTimer = 2;
-    audio.play("crash");
-    audio.volume(1);
+    audio.playOneShot("crash");
   };
 
   menu.onContinue = () => {
     state.isAsleep = false;
+    audio.playOneShot("wake");
   };
 
   menu.onBuyPlant = () => {
     const plant = new Plant(Math.random() * (p.width - 4) + 2);
     plants.push(plant);
   };
+
+  audio.playOneShot("wake");
 
   return state;
 }
@@ -224,13 +225,17 @@ init({
         }
 
         // cancel driving
-        if (p.keyPressed("c")) state.isDriving = false;
+        if (p.keyPressed("c")) {
+          state.isDriving = false;
+          audio.playOneShot("off");
+        }
       } else {
         if (miner.heldPlant) {
           gui.holdingPlant();
 
           if (p.keyPressed("x")) {
             miner.heldPlant = null;
+            audio.playOneShot("thud");
           }
         } else {
           // add console interaction
@@ -240,6 +245,7 @@ init({
             if (p.keyPressed("c")) {
               state.isDriving = true;
               state.showControls = true;
+              audio.playOneShot("on");
             }
           }
 
@@ -250,6 +256,7 @@ init({
             if (p.keyPressed("c")) {
               menu.reset();
               state.isAsleep = true;
+              audio.playOneShot("sleep");
             }
           }
 
@@ -261,10 +268,12 @@ init({
 
             if (p.keyPressed("c")) {
               plant.water();
+              audio.playOneShot("blip-1");
             }
 
             if (p.keyPressed("x")) {
               miner.heldPlant = plant;
+              audio.playOneShot("thud");
             }
           }
         }
@@ -335,22 +344,15 @@ init({
     }
 
     // audio
-    if (!audio.isPlaying("crash")) {
-      if (isMining) {
-        if (!audio.isPlaying("laser")) audio.play("laser", true);
-        audio.volume(0.25);
-      } else {
-        if (audio.isPlaying("laser")) {
-          audio.stop();
-        }
+    audio.setBackground(null);
 
-        if (ship.isMoving && ship.hullIntegrity > 0) {
-          if (!audio.isPlaying("rumble")) audio.play("rumble", true);
-          audio.volume(Math.min(Vec3.magSq(ship.vel), 1));
-        } else if (audio.isPlaying("rumble")) {
-          audio.stop();
-        }
-      }
+    if (isMining) {
+      audio.setBackground("laser", 0.5);
+    } else if (ship.isMoving) {
+      const volume = Math.min(Vec3.magSq(ship.vel), 1);
+      audio.setBackground("rumble", volume);
     }
+
+    audio.update();
   }
 });
