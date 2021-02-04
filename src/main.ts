@@ -10,9 +10,9 @@ import Asteroid from "./asteroid";
 import Plant from "./plant";
 import ExplosionParticle from "./explosion-particle";
 import Gui from "./gui";
-import dither from "./dither";
 import Menu from "./menu";
 import drawHud from "./draw-hud";
+import drawFade from "./draw-fade";
 
 const isDev = import.meta.env.DEV;
 
@@ -313,26 +313,20 @@ init({
 
       // draw the fade in/out effect
       if (state.dreamBackdrop > 0) {
-        for (let x = 0; x < p.width; x++) {
-          for (let y = 0; y < p.height; y++) {
-            const dx = x - 8;
-            const dy = y - (p.height - 4);
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            const w = 40;
-            const t = (dist + w - (1 - state.dreamBackdrop) * (p.width * 2)) / w;
-
-            if (dither(x, y, t)) {
-              p.pixel(x, y, light);
-            }
-          }
-        }
+        drawFade(1 - state.dreamBackdrop, light, [8, p.height - 4]);
       }
     }
 
     // reset if ship exploded
     if (ship.hullIntegrity <= 0) {
-      state.deadTimer += p.deltaTime;
+      state.deadTimer += p.deltaTime * 0.5;
+
+      if (state.deadTimer > 1 && state.deadTimer <= 2) {
+        drawFade(state.deadTimer - 1, dark, [p.width / 2, p.height / 2], true);
+      } else if (state.deadTimer > 2) {
+        p.clear(dark);
+        drawFade(state.deadTimer - 2, light);
+      }
 
       if (state.deadTimer > 3) {
         reset();
