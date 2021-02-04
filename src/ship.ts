@@ -24,35 +24,38 @@ export default class Ship {
   hullIntegrity = 1;
 
   update() {
-    if (this.hullIntegrity <= 0) return;
-
     this.state = ShipState.Idle;
 
-    if (this.hasControl) {
-      // turn ship
-      if (p.keyDown("left")) this.turn(0, p.deltaTime);
-      if (p.keyDown("right")) this.turn(0, -p.deltaTime);
-      if (p.keyDown("up")) this.turn(p.deltaTime, 0);
-      if (p.keyDown("down")) this.turn(-p.deltaTime, 0);
+    if (this.hullIntegrity > 0) {
+      if (this.hasControl) {
+        // turn ship
+        if (p.keyDown("left")) this.turn(0, p.deltaTime);
+        if (p.keyDown("right")) this.turn(0, -p.deltaTime);
+        if (p.keyDown("up")) this.turn(p.deltaTime, 0);
+        if (p.keyDown("down")) this.turn(-p.deltaTime, 0);
 
-      // accelerate forwards/backwards
-      if (p.keyDown("z")) this.thrust([0, 0, p.deltaTime]);
-      if (p.keyDown("x")) this.thrust([0, 0, -p.deltaTime]);
-    }
-
-    if ((p.keyDown("z") || p.keyDown("x")) && this.hasControl) {
-      this.state = ShipState.Accelerating;
-    } else {
-      // apply braking force if in motion
-      const speed = Vec3.mag(this.vel);
-      if (speed > 10e-4) {
-        this.state = ShipState.Braking;
-        const brakingForce = -Math.min(p.deltaTime, Vec3.mag(this.vel));
-        const drag = Vec3.scale(Vec3.normalize(this.vel), brakingForce);
-        this.vel = Vec3.add(drag, this.vel);
-      } else {
-        this.vel = [0, 0, 0];
+        // accelerate forwards/backwards
+        if (p.keyDown("z")) this.thrust([0, 0, p.deltaTime]);
+        if (p.keyDown("x")) this.thrust([0, 0, -p.deltaTime]);
       }
+
+      if ((p.keyDown("z") || p.keyDown("x")) && this.hasControl) {
+        this.state = ShipState.Accelerating;
+      } else {
+        // apply braking force if in motion
+        const speed = Vec3.mag(this.vel);
+        if (speed > 10e-4) {
+          this.state = ShipState.Braking;
+          const brakingForce = -Math.min(p.deltaTime, Vec3.mag(this.vel));
+          const drag = Vec3.scale(Vec3.normalize(this.vel), brakingForce);
+          this.vel = Vec3.add(drag, this.vel);
+        } else {
+          this.vel = [0, 0, 0];
+        }
+      }
+    } else {
+      // slowly drift away after ship explodes
+      this.vel = Vec3.scale(Vec3.normalize(this.vel), 0.5);
     }
 
     this.pos = Vec3.add(this.pos, Vec3.scale(this.vel, p.deltaTime));

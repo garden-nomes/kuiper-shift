@@ -321,11 +321,8 @@ init({
     if (ship.hullIntegrity <= 0) {
       state.deadTimer += p.deltaTime * 0.5;
 
-      if (state.deadTimer > 1 && state.deadTimer <= 2) {
-        drawFade(state.deadTimer - 1, dark, [p.width / 2, p.height / 2], true);
-      } else if (state.deadTimer > 2) {
-        p.clear(dark);
-        drawFade(state.deadTimer - 2, light);
+      if (state.deadTimer > 1) {
+        drawFade((state.deadTimer - 1) / 2, light, [p.width / 2, p.height / 2], true);
       }
 
       if (state.deadTimer > 3) {
