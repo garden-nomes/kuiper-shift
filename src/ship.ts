@@ -13,7 +13,7 @@ export default class Ship {
   pos = [0, 0, 0];
   vel = [0, 0, 0];
   hasControl = false;
-  miningDistance = 0.4;
+  miningDistance = 0.6;
   asteroidShrinkRate = 0.1;
   miningRate = 50;
   state = ShipState.Idle;

@@ -141,7 +141,7 @@ init({
         for (let i = 0; i < asteroids.length; i++) {
           const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
           const radius = asteroids[i].radius;
-          const miningRadius = radius + ship.miningDistance;
+          const miningRadius = ship.miningDistance;
 
           if (distSq < radius * radius) {
             // collision with asteroid
