@@ -95,4 +95,12 @@ export default class Ship {
       this.onDamage();
     }
   }
+
+  get speed() {
+    return Vec3.mag(this.vel);
+  }
+
+  get forward() {
+    return Matrix.mult3x3vec(this.rot, [0, 0, 1]);
+  }
 }

@@ -2,7 +2,7 @@ import { init } from "pota-8";
 import * as SimplexNoise_ from "simplex-noise";
 import fontSrc from "../assets/Gizmo199lightfont.png";
 import { sprites, spritesheet } from "../asset-bundles";
-import { Projection, Vec3 } from "./math";
+import { Projection, raycastSphere, Vec3 } from "./math";
 import Ship from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
@@ -120,6 +120,9 @@ init({
     // track currently mining asteroids (there can be more than one)
     const mining = [];
 
+    // track closest asteroid for GUI
+    let asteroidDistance = null;
+
     if (state.dreamBackdrop > 0 && !state.isAsleep) {
       state.dreamBackdrop -= p.deltaTime * 0.5;
     } else if (state.dreamBackdrop < 1 && state.isAsleep) {
@@ -142,6 +145,21 @@ init({
           const distSq = Vec3.magSq(Vec3.sub(asteroids[i].pos, ship.pos));
           const radius = asteroids[i].radius;
           const miningRadius = ship.miningDistance;
+
+          const raycast = raycastSphere(
+            ship.pos,
+            ship.forward,
+            asteroids[i].pos,
+            asteroids[i].radius
+          );
+
+          // update closest asteroid
+          if (
+            raycast !== null &&
+            (asteroidDistance === null || raycast < asteroidDistance)
+          ) {
+            asteroidDistance = raycast;
+          }
 
           if (distSq < radius * radius) {
             // collision with asteroid
@@ -290,6 +308,24 @@ init({
         plants.forEach(p => p.draw());
         miner.draw();
         gui.draw();
+
+        if (state.isDriving) {
+          const speedBarHeight = Math.min(Math.log(ship.speed + 1) * 16, 28);
+          p.line(3, p.height - 11, 3, p.height - 11 - speedBarHeight, light);
+
+          if (asteroidDistance !== null) {
+            const proximityHeight = Math.min(Math.log(asteroidDistance + 1) * 16 - 1, 28);
+            const flashing = asteroidDistance < 0.5;
+
+            p.line(
+              p.width - 4,
+              p.height - 11,
+              p.width - 4,
+              p.height - 11 - proximityHeight,
+              flashing && p.frame % 2 === 0 ? dark : light
+            );
+          }
+        }
       }
 
       // draw the fade in/out effect

@@ -93,6 +93,32 @@ export namespace Matrix {
   }
 }
 
+export function raycastSphere(
+  rayOrigin: number[],
+  rayDirection: number[],
+  sphereCenter: number[],
+  sphereRadius: number
+): number | null {
+  // http://kylehalladay.com/blog/tutorial/math/2013/12/24/Ray-Sphere-Intersection.html
+
+  const toSphere = Vec3.sub(sphereCenter, rayOrigin);
+  const tc = Vec3.dot(toSphere, rayDirection);
+
+  if (tc < 0) {
+    return null;
+  }
+
+  const d = Math.sqrt(Vec3.magSq(toSphere) - tc * tc);
+
+  if (d > sphereRadius) {
+    return null;
+  }
+
+  const t1c = Math.sqrt(sphereRadius * sphereRadius - d * d);
+
+  return tc - t1c;
+}
+
 export class Projection {
   m: number[][];
 
