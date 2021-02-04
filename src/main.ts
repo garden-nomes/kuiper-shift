@@ -14,7 +14,8 @@ import dither from "./dither";
 import Menu from "./menu";
 
 // weird bundling issue
-const SimplexNoise = (SimplexNoise_ as any).default || SimplexNoise_;
+const SimplexNoise: typeof SimplexNoise_ =
+  (SimplexNoise_ as any).default || SimplexNoise_;
 
 const noise = new SimplexNoise();
 let shakeTimer = 0;
@@ -80,7 +81,6 @@ function setupGameState() {
   };
 
   menu.onBuyPlant = () => {
-    console.log("congrats on ur new plant");
     const plant = new Plant(Math.random() * (p.width - 4) + 2);
     plants.push(plant);
   };
@@ -88,7 +88,7 @@ function setupGameState() {
   return state;
 }
 
-export let state = setupGameState();
+let state = setupGameState();
 
 function reset() {
   state = setupGameState();

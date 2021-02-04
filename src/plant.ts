@@ -1,4 +1,5 @@
 import { sprites } from "../asset-bundles";
+import PlantSystem from "./plant-system";
 
 export enum PlantState {
   Happy,
@@ -7,9 +8,12 @@ export enum PlantState {
 }
 
 export default class Plant {
-  growth = 0;
   hydration = 1;
   sickly = 0;
+  system = new PlantSystem();
+  updateInterval = 1 / 10;
+  updateTimer = 0;
+  growthRate = 0.05;
 
   constructor(public x: number) {}
 
@@ -20,8 +24,13 @@ export default class Plant {
     this.sickly += p.deltaTime * (this.hydration - 1) * 0.1;
     this.sickly = Math.min(Math.max(this.sickly, 0), 1);
 
-    this.growth += p.deltaTime * 0.01 * Math.min(this.hydration, 1) * (1 - this.sickly);
-    this.growth = Math.max(Math.min(this.growth, 1 - 10e-6), 0);
+    this.updateTimer +=
+      this.growthRate * p.deltaTime * Math.min(this.hydration, 1) * (1 - this.sickly);
+
+    if (this.updateTimer > this.updateInterval) {
+      this.system.iterate(this.updateTimer);
+      this.updateTimer = 0;
+    }
   }
 
   get y() {
@@ -47,9 +56,8 @@ export default class Plant {
   }
 
   draw() {
-    const frames = sprites.plant1.length;
-    const frame = ~~(this.growth * frames);
-    const rect = sprites.plant1[frame];
+    const rect = sprites.pot[0];
     p.sprite(this.x - rect.w / 2, this.y - rect.h, rect);
+    this.system.draw(this.x, this.y - 3);
   }
 }
