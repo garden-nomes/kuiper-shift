@@ -1,8 +1,8 @@
-import { init } from "pota-8";
+import { init, TextAlign, VerticalAlign } from "pota-8";
 import * as SimplexNoise_ from "simplex-noise";
 import fontSrc from "../assets/Gizmo199lightfont.png";
 import { sprites, spritesheet } from "../asset-bundles";
-import { Projection, raycastSphere, Vec3 } from "./math";
+import { Matrix, Projection, raycastSphere, Vec3 } from "./math";
 import Ship from "./ship";
 import Miner from "./miner";
 import { light, dark } from "./colors";
@@ -24,7 +24,7 @@ const SimplexNoise: typeof SimplexNoise_ =
 const noise = new SimplexNoise();
 let shakeTimer = 0;
 
-function setupGameState() {
+function setupGameState(isReset = false) {
   const asteroids: Asteroid[] = [];
   const particles: ExplosionParticle[] = [];
   const stars: number[][] = [];
@@ -42,6 +42,9 @@ function setupGameState() {
   let menuFadeInTimer = 0;
   let dreamBackdrop = 1;
   let isAsleep = false;
+  let isTitleScreen = true;
+  let titleFadeOut = false;
+  let titleFadeOutTimer = isReset ? 1 : 0;
   let holdFullBeepTimer = 0;
   let miningParticleTimer = 0;
 
@@ -60,6 +63,9 @@ function setupGameState() {
     deadTimer,
     dreamBackdrop,
     isAsleep,
+    isTitleScreen,
+    titleFadeOut,
+    titleFadeOutTimer,
     menuFadeInTimer,
     holdFullBeepTimer,
     miningParticleTimer
@@ -97,15 +103,13 @@ function setupGameState() {
     plants.push(plant);
   };
 
-  audio.playOneShot("wake");
-
   return state;
 }
 
 let state = setupGameState();
 
 function reset() {
-  state = setupGameState();
+  state = setupGameState(true);
 }
 
 init({
@@ -126,7 +130,7 @@ init({
   loop() {
     const { ship, miner, plants, asteroids, particles, stars, gui, menu } = state;
 
-    p.clear(state.dreamBackdrop < 1 ? dark : light);
+    p.clear(state.isTitleScreen || state.dreamBackdrop < 1 ? dark : light);
 
     gui.text = [];
 
@@ -141,7 +145,25 @@ init({
     let closestAsteroid: Asteroid | null = null;
     let isMining = false;
 
-    if (state.dreamBackdrop > 0 && !state.isAsleep) {
+    if (state.isTitleScreen) {
+      ship.rot = Matrix.yaw(p.elapsed * 0.05);
+      ship.pos = Matrix.mult3x3vec(ship.rot, [0, 0, -5]);
+
+      if (p.keyPressed("c")) {
+        state.titleFadeOut = true;
+      }
+
+      if (state.titleFadeOut) {
+        state.titleFadeOutTimer += p.deltaTime;
+        if (state.titleFadeOutTimer > 1) {
+          state.isTitleScreen = false;
+          ship.pos = [0, 0, 0];
+          audio.playOneShot("wake");
+        }
+      } else if (state.titleFadeOutTimer > 0) {
+        state.titleFadeOutTimer -= p.deltaTime;
+      }
+    } else if (state.dreamBackdrop > 0 && !state.isAsleep) {
       state.dreamBackdrop -= p.deltaTime;
 
       // animate miner moving away from bed
@@ -334,7 +356,7 @@ init({
       }
     }
 
-    if (state.dreamBackdrop < 1) {
+    if (state.isTitleScreen || state.dreamBackdrop < 1) {
       // create exterior camera projection
       const projection = new Projection(ship.pos, ship.rot, p.width / 2);
 
@@ -361,7 +383,7 @@ init({
       p.center(p.width / 2, p.height / 2);
 
       // draw interior
-      if (ship.hullIntegrity > 0) {
+      if (ship.hullIntegrity > 0 && !state.isTitleScreen) {
         // hud
         if (state.isDriving) {
           drawHud(ship, asteroidDistance, isMining);
@@ -396,6 +418,43 @@ init({
         gui.draw();
       }
     }
+
+    if (state.isTitleScreen) {
+      const title = "super\nasteroid\nminer";
+      p.text(title, p.width / 2 + 1, 10, {
+        color: light,
+        align: TextAlign.Center
+      });
+
+      p.text(title, p.width / 2 - 1, 10, {
+        color: light,
+        align: TextAlign.Center
+      });
+
+      p.text(title, p.width / 2, 10 + 1, {
+        color: light,
+        align: TextAlign.Center
+      });
+
+      p.text(title, p.width / 2, 10 - 1, {
+        color: light,
+        align: TextAlign.Center
+      });
+
+      p.text(title, p.width / 2, 10, {
+        color: dark,
+        align: TextAlign.Center
+      });
+
+      if (p.elapsed % 2 < 4 / 3) {
+        p.text("[c] start", p.width / 2, p.height - 10, {
+          color: light,
+          align: TextAlign.Center,
+          verticalAlign: VerticalAlign.Bottom
+        });
+      }
+    }
+
     // draw the fade in/out effect
     if (state.dreamBackdrop > 0 && state.dreamBackdrop < 1) {
       drawFade(1 - state.dreamBackdrop, light, [8, p.height - 4]);
@@ -403,6 +462,10 @@ init({
 
     if (state.menuFadeInTimer > 0 && state.menuFadeInTimer < 0.5) {
       drawFade(1 - state.menuFadeInTimer * 2, light);
+    }
+
+    if (state.isTitleScreen && state.titleFadeOutTimer > 0) {
+      drawFade(state.titleFadeOutTimer, light);
     }
 
     // reset if ship exploded
@@ -421,7 +484,9 @@ init({
     // background audio
     audio.setBackground(null);
 
-    if (miner.wateringPlant) {
+    if (state.isTitleScreen) {
+      audio.setBackground("claire-de-lune", 1);
+    } else if (miner.wateringPlant) {
       audio.setBackground("blip-1", 0.5);
     } else if (isMining) {
       audio.setBackground("laser", 0.5);
