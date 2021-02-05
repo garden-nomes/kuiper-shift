@@ -22,8 +22,9 @@ export default class Plant {
   waterParticles = [];
 
   constructor() {
-    const minX = furniture.bed.x + furniture.bed.w + 2; // don't drop in front of bed
-    const maxX = p.width - 2;
+    // don't drop in front of bed or shelves
+    const minX = furniture.bed.x + furniture.bed.w + 2;
+    const maxX = furniture.shelves.x;
 
     let x = Math.random() * (maxX - furniture.console.w) + minX;
 
