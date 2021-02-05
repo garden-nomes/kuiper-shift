@@ -269,6 +269,10 @@ init({
           audio.playOneShot("off");
         }
       } else {
+        plants.forEach(p => {
+          p.highlight = false;
+        });
+
         if (miner.heldPlant) {
           gui.holdingPlant();
 
@@ -303,8 +307,8 @@ init({
 
           // plant interaction
           const plant = plants.find(p => Math.abs(miner.x - p.x) < 2);
-
           if (plant) {
+            plant.highlight = true;
             gui.interactPlant(plant);
 
             if (p.keyPressed("c")) {

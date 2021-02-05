@@ -142,7 +142,7 @@ export default class PlantSystem {
     this.cachedRendingBounds = [xMin, yMin, w, h];
   }
 
-  draw(x: number, y: number) {
+  draw(x: number, y: number, highlight = false) {
     if (!this.cachedRendering) return;
 
     const [x0, y0, w, h] = this.cachedRendingBounds;
@@ -152,7 +152,11 @@ export default class PlantSystem {
         const px = x + x0 + (i % w);
         const py = y + y0 + ~~(i / w);
 
-        const c = this.cachedRendering[i] === 2 ? dark : light;
+        // prettier-ignore
+        const c = highlight
+          ? p.frame % 10 < 5 ? light : dark
+          : this.cachedRendering[i] === 2 ? dark : light;
+
         p.pixel(px + 1, py, c);
         p.pixel(px - 1, py, c);
         p.pixel(px, py + 1, c);

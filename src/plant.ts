@@ -12,6 +12,7 @@ export default class Plant {
   updateInterval = 1 / 10;
   updateTimer = 0;
   growthRate = 0.05;
+  highlight = false;
 
   constructor(public x: number) {}
 
@@ -50,7 +51,7 @@ export default class Plant {
 
   draw() {
     const rect = sprites.pot[0];
-    this.system.draw(this.x, this.y - 3);
+    this.system.draw(this.x, this.y - 3, this.highlight);
     p.sprite(this.x - rect.w / 2, this.y - rect.h, rect);
   }
 }
