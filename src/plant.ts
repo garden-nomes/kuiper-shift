@@ -3,13 +3,11 @@ import PlantSystem from "./plant-system";
 
 export enum PlantState {
   Happy,
-  Thirsty,
-  Sickly
+  Thirsty
 }
 
 export default class Plant {
   hydration = 1;
-  sickly = 0;
   system = new PlantSystem();
   updateInterval = 1 / 10;
   updateTimer = 0;
@@ -21,11 +19,7 @@ export default class Plant {
     this.hydration -= p.deltaTime * 0.01;
     this.hydration = Math.min(Math.max(this.hydration, 0), 2);
 
-    this.sickly += p.deltaTime * (this.hydration - 1) * 0.1;
-    this.sickly = Math.min(Math.max(this.sickly, 0), 1);
-
-    this.updateTimer +=
-      this.growthRate * p.deltaTime * Math.min(this.hydration, 1) * (1 - this.sickly);
+    this.updateTimer += this.growthRate * p.deltaTime * Math.min(this.hydration, 1);
 
     if (this.updateTimer > this.updateInterval) {
       this.system.iterate(this.updateTimer);
@@ -42,9 +36,7 @@ export default class Plant {
   }
 
   state() {
-    if (this.sickly > 0.5) {
-      return PlantState.Sickly;
-    } else if (this.hydration < 0.5) {
+    if (this.hydration < 0.5) {
       return PlantState.Thirsty;
     } else {
       return PlantState.Happy;
@@ -53,6 +45,7 @@ export default class Plant {
 
   water() {
     this.hydration += 1;
+    this.hydration = Math.min(this.hydration, 1.5);
   }
 
   draw() {
