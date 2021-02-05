@@ -20,7 +20,8 @@ type PlantCommand =
 export default class PlantSystem {
   sequence: PlantCommand[] = [[PlantNode.Apex, 0]];
   age = 0;
-  lines: ReturnType<typeof drawTurtle> = [];
+  cachedRendering: Uint8Array | null = null;
+  cachedRendingBounds: number[] | null = null;
 
   endBranching = Math.random() * 2 + 4;
   endGrowth = Math.random() * 5 + 2;
@@ -101,12 +102,70 @@ export default class PlantSystem {
   }
 
   updateLines() {
-    this.lines = drawTurtle(this.interpret(), 0, 0);
+    const lines = drawTurtle(this.interpret(), 0, 0);
+
+    for (const line of lines) {
+      line[0] = Math.round(line[0]);
+      line[1] = Math.round(line[1]);
+      line[2] = Math.round(line[2]);
+      line[3] = Math.round(line[3]);
+    }
+
+    let xMin = Number.POSITIVE_INFINITY,
+      xMax = Number.NEGATIVE_INFINITY,
+      yMin = Number.POSITIVE_INFINITY,
+      yMax = Number.NEGATIVE_INFINITY;
+
+    for (const [x0, y0, x1, y1] of lines) {
+      if (x0 < xMin) xMin = x1;
+      if (x0 > xMax) xMax = x1;
+      if (y0 < yMin) yMin = y1;
+      if (y0 > yMax) yMax = y1;
+      if (x1 < xMin) xMin = x1;
+      if (x1 > xMax) xMax = x1;
+      if (y1 < yMin) yMin = y1;
+      if (y1 > yMax) yMax = y1;
+    }
+
+    const w = Math.ceil(xMax - xMin),
+      h = Math.ceil(yMax - yMin);
+    this.cachedRendering = new Uint8Array(w * h);
+
+    // draw light colors over dark to give the impression of a leafy top
+
+    for (const [x0, y0, x1, y1, c] of lines) {
+      if (c[0] === dark[0]) {
+        const i0 = (y0 - yMin) * w + (x0 - xMin);
+        const i1 = (y1 - yMin) * w + (x1 - xMin);
+        this.cachedRendering[i0] = 1;
+        this.cachedRendering[i1] = 1;
+      }
+    }
+
+    for (const [x0, y0, x1, y1, c] of lines) {
+      if (c[0] === light[0]) {
+        const i0 = (y0 - yMin) * w + (x0 - xMin);
+        const i1 = (y1 - yMin) * w + (x1 - xMin);
+        this.cachedRendering[i0] = 2;
+        this.cachedRendering[i1] = 2;
+      }
+    }
+
+    this.cachedRendingBounds = [xMin, yMin, w, h];
   }
 
   draw(x: number, y: number) {
-    for (const [x0, y0, x1, y1, c] of this.lines) {
-      p.line(x0 + x, y0 + y, x1 + x, y1 + y, c);
+    if (!this.cachedRendering) return;
+
+    const [x0, y0, w, h] = this.cachedRendingBounds;
+
+    for (let i = 0; i < this.cachedRendering.length; i++) {
+      if (this.cachedRendering[i] > 0) {
+        const px = x + x0 + (i % w);
+        const py = y + y0 + ~~(i / w);
+        const c = this.cachedRendering[i] === 1 ? dark : light;
+        p.pixel(px, py, c);
+      }
     }
   }
 }
