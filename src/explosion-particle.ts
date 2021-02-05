@@ -3,12 +3,12 @@ import { light, dark } from "./colors";
 
 export default class ExplosionParticle {
   vel: number[];
-  lifespan = Math.random() * 4;
+  lifespan = Math.random() * 0.3;
   isDead = false;
 
   constructor(private pos: number[]) {
     this.vel = [Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5];
-    this.vel = Vec3.scale(Vec3.normalize(this.vel), Math.random() * 3 + 0.5);
+    this.vel = Vec3.scale(Vec3.normalize(this.vel), 2);
   }
 
   update() {
@@ -18,16 +18,19 @@ export default class ExplosionParticle {
       this.isDead = true;
     }
 
+    this.vel = Vec3.scale(this.vel, 0.95);
     this.pos = Vec3.add(this.pos, Vec3.scale(this.vel, p.deltaTime));
   }
 
   draw(projection: Projection) {
-    const [sx, sy, sz] = projection.projectToScreen(this.pos);
+    const [x0, y0, z] = projection.projectToScreen(this.pos);
+    const [x1, y1] = projection.projectToScreen(
+      Vec3.add(this.pos, Vec3.scale(this.vel, 0.01))
+    );
 
-    if (sz > 0) {
-      const flipColor = (p.elapsed * 30) % 2 > 1;
-      const c = flipColor ? light : dark;
-      p.pixel(sx, sy, c);
+    if (z > 0) {
+      const c = p.frame % 2 === 0 ? light : dark;
+      p.line(x0, y0, x1, y1, c);
     }
   }
 }

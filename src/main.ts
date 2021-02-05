@@ -43,6 +43,7 @@ function setupGameState() {
   let dreamBackdrop = 1;
   let isAsleep = false;
   let holdFullBeepTimer = 0;
+  let miningParticleTimer = 0;
 
   const state = {
     asteroids,
@@ -60,7 +61,8 @@ function setupGameState() {
     dreamBackdrop,
     isAsleep,
     menuFadeInTimer,
-    holdFullBeepTimer
+    holdFullBeepTimer,
+    miningParticleTimer
   };
 
   for (let i = 0; i < 100; i++) {
@@ -164,7 +166,13 @@ init({
       miner.update();
       plants.forEach(p => p.update());
       particles.forEach(p => p.update());
-      state.particles = particles.filter(p => !p.isDead);
+
+      for (let i = 0; i < particles.length; i++) {
+        if (particles[i].isDead) {
+          particles.splice(i, 1);
+          i--;
+        }
+      }
 
       // ship/asteroid interactions
       if (ship.hullIntegrity > 0) {
@@ -214,7 +222,19 @@ init({
           asteroids.splice(asteroids.indexOf(closestAsteroid), 1);
         }
 
+        state.miningParticleTimer += p.deltaTime;
+        if (state.miningParticleTimer > 0.05) {
+          state.miningParticleTimer = 0;
+          const pos = Vec3.add(ship.pos, Vec3.scale(ship.forward, asteroidDistance));
+
+          for (let i = 0; i < 3; i++) {
+            particles.push(new ExplosionParticle(pos));
+          }
+        }
+
         gui.showMining(ship.ore);
+      } else {
+        state.miningParticleTimer = 0;
       }
 
       if (state.isDriving) {
