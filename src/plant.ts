@@ -10,6 +10,7 @@ export enum PlantState {
 
 export default class Plant {
   x = 0;
+  level = 1;
   hydration = 0.5;
   system = new PlantSystem();
   updateInterval = 1 / 3;
@@ -73,18 +74,33 @@ export default class Plant {
     }
   }
 
-  get y() {
+  moveUp() {
+    this.level = Math.min(this.level + 1, this.yLevels.length - 1);
+  }
+
+  moveDown() {
+    this.level = Math.max(this.level - 1, 0);
+  }
+
+  get yLevels() {
     const { shelf, table } = furniture;
 
+    const levels = [p.height];
+
     if (this.x > shelf.x && this.x < shelf.x + shelf.w) {
-      return p.height - shelf.h;
+      levels.push(p.height - shelf.h);
     }
 
     if (this.x > table.x && this.x < table.x + table.w) {
-      return p.height - table.h;
+      levels.push(p.height - table.h);
     }
 
-    return p.height;
+    return levels;
+  }
+
+  get y() {
+    const possibleLevels = this.yLevels;
+    return possibleLevels[Math.min(possibleLevels.length - 1, this.level)];
   }
 
   state() {

@@ -60,6 +60,14 @@ export default class Miner {
     if (this.heldPlant) {
       this.heldPlant.x = this.flip ? this.x - 3 : this.x + 4;
       this.heldPlant.x = Math.min(Math.max(this.heldPlant.x, 2), p.width - 2);
+
+      if (p.keyPressed("up")) {
+        this.heldPlant.moveUp();
+      }
+
+      if (p.keyPressed("down")) {
+        this.heldPlant.moveDown();
+      }
     }
   }
 
