@@ -50,7 +50,7 @@ export default class Plant {
 
   draw() {
     const rect = sprites.pot[0];
-    p.sprite(this.x - rect.w / 2, this.y - rect.h, rect);
     this.system.draw(this.x, this.y - 3);
+    p.sprite(this.x - rect.w / 2, this.y - rect.h, rect);
   }
 }

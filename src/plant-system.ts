@@ -131,24 +131,12 @@ export default class PlantSystem {
       h = Math.ceil(yMax - yMin);
     this.cachedRendering = new Uint8Array(w * h);
 
-    // draw light colors over dark to give the impression of a leafy top
-
     for (const [x0, y0, x1, y1, c] of lines) {
-      if (c[0] === dark[0]) {
-        const i0 = (y0 - yMin) * w + (x0 - xMin);
-        const i1 = (y1 - yMin) * w + (x1 - xMin);
-        this.cachedRendering[i0] = 1;
-        this.cachedRendering[i1] = 1;
-      }
-    }
-
-    for (const [x0, y0, x1, y1, c] of lines) {
-      if (c[0] === light[0]) {
-        const i0 = (y0 - yMin) * w + (x0 - xMin);
-        const i1 = (y1 - yMin) * w + (x1 - xMin);
-        this.cachedRendering[i0] = 2;
-        this.cachedRendering[i1] = 2;
-      }
+      const n = c[0] === light[0] ? 2 : 1;
+      const i0 = (y0 - yMin) * w + (x0 - xMin);
+      const i1 = (y1 - yMin) * w + (x1 - xMin);
+      this.cachedRendering[i0] = n;
+      this.cachedRendering[i1] = n;
     }
 
     this.cachedRendingBounds = [xMin, yMin, w, h];
@@ -158,6 +146,19 @@ export default class PlantSystem {
     if (!this.cachedRendering) return;
 
     const [x0, y0, w, h] = this.cachedRendingBounds;
+
+    for (let i = 0; i < this.cachedRendering.length; i++) {
+      if (this.cachedRendering[i] > 0) {
+        const px = x + x0 + (i % w);
+        const py = y + y0 + ~~(i / w);
+
+        const c = this.cachedRendering[i] === 2 ? dark : light;
+        p.pixel(px + 1, py, c);
+        p.pixel(px - 1, py, c);
+        p.pixel(px, py + 1, c);
+        p.pixel(px, py - 1, c);
+      }
+    }
 
     for (let i = 0; i < this.cachedRendering.length; i++) {
       if (this.cachedRendering[i] > 0) {
