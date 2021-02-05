@@ -99,8 +99,7 @@ function setupGameState(isReset = false) {
   };
 
   menu.onBuyPlant = () => {
-    const plant = new Plant(Math.random() * (p.width - 4) + 2);
-    plants.push(plant);
+    plants.push(new Plant());
   };
 
   return state;

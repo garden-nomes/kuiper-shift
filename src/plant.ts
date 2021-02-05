@@ -9,6 +9,7 @@ export enum PlantState {
 }
 
 export default class Plant {
+  x = 0;
   hydration = 0.5;
   system = new PlantSystem();
   updateInterval = 1 / 3;
@@ -19,7 +20,21 @@ export default class Plant {
   isWatering = true;
   waterParticles = [];
 
-  constructor(public x: number) {}
+  constructor() {
+    const minX = furniture.bed.x + furniture.bed.w + 2; // don't drop in front of bed
+    const maxX = p.width - 2;
+
+    let x = Math.random() * (maxX - furniture.console.w) + minX;
+
+    // don't drop in front of console
+    const consoleLeft = furniture.console.x;
+    const consoleRight = furniture.console.x + furniture.console.w;
+    if (x > consoleLeft && x < consoleRight) {
+      x += furniture.console.w;
+    }
+
+    this.x = x;
+  }
 
   update() {
     this.hydration -= p.deltaTime * 0.01;
