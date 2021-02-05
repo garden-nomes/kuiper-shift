@@ -364,7 +364,7 @@ init({
         p.sprite(0, 0, sprites.frame[0]);
 
         // console screen
-        if (state.isDriving && p.frame % 2 === 0) {
+        if (state.isDriving) {
           p.sprite(39, 36, sprites.screen[0]);
 
           // draw over sprite to create animated text effect
