@@ -123,7 +123,7 @@ init({
     src: fontSrc,
     w: 5,
     h: 5,
-    letters: "!\"#¢% '()[]*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz"
+    letters: "!\"#¢% '()[]*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz←→↑↓ⓏⓍⒸ"
   },
 
   loop() {
@@ -295,7 +295,7 @@ init({
         });
 
         if (miner.heldPlant) {
-          gui.holdingPlant();
+          gui.holdingPlant(miner.heldPlant.possiblePlacements.length > 1);
 
           if (p.keyPressed("x")) {
             miner.heldPlant = null;

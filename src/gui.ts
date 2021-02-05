@@ -32,7 +32,7 @@ export default class Gui {
   }
 
   showDrivingControls() {
-    this.text = ["[z] forward", "[x] reverse", null, "[c] cancel"];
+    this.text = ["Ⓩ forward", "Ⓧ reverse", "←→↑↓ turn", null, "Ⓒ cancel"];
   }
 
   showShipState(ship: Ship) {
@@ -44,11 +44,11 @@ export default class Gui {
   }
 
   interactConsole() {
-    this.text = ["[c] drive"];
+    this.text = ["Ⓒ drive"];
   }
 
   interactBed() {
-    this.text = ["[c] rest"];
+    this.text = ["Ⓒ rest"];
   }
 
   interactPlant(plant: Plant) {
@@ -61,11 +61,15 @@ export default class Gui {
         break;
     }
 
-    this.text = [...this.text, null, "hold [c] water", "[x] move"];
+    this.text = [...this.text, null, "hold Ⓒ water", "Ⓧ move"];
   }
 
-  holdingPlant() {
-    this.text = ["[x] place"];
+  holdingPlant(canChangeLevel: boolean) {
+    this.text = ["Ⓧ place"];
+
+    if (canChangeLevel) {
+      this.text.push("↑↓ move");
+    }
   }
 
   collided(ship: Ship) {
