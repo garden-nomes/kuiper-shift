@@ -10,7 +10,7 @@ export enum PlantState {
 
 export default class Plant {
   x = 0;
-  level = 1;
+  lastPlacement = 0;
   hydration = 0.5;
   system = new PlantSystem();
   updateInterval = 1 / 3;
@@ -76,32 +76,56 @@ export default class Plant {
   }
 
   moveUp() {
-    this.level = Math.min(this.level + 1, this.yLevels.length - 1);
+    const levels = this.possiblePlacements;
+    let i = levels.indexOf(this.placement);
+    i = Math.min(i + 1, levels.length - 1);
+    this.lastPlacement = levels[i];
   }
 
   moveDown() {
-    this.level = Math.max(this.level - 1, 0);
+    const levels = this.possiblePlacements;
+    let i = levels.indexOf(this.placement);
+    i = Math.max(i - 1, 0);
+    this.lastPlacement = levels[i];
   }
 
-  get yLevels() {
-    const { shelf, table } = furniture;
+  get placement() {
+    const levels = this.possiblePlacements;
 
-    const levels = [p.height];
-
-    if (this.x > shelf.x && this.x < shelf.x + shelf.w) {
-      levels.push(p.height - shelf.h);
+    let closestLevel = levels[0];
+    for (const y of levels) {
+      if (
+        Math.abs(y - this.lastPlacement) < Math.abs(closestLevel - this.lastPlacement)
+      ) {
+        closestLevel = y;
+      }
     }
 
-    if (this.x > table.x && this.x < table.x + table.w) {
-      levels.push(p.height - table.h);
+    return closestLevel;
+  }
+
+  get possiblePlacements() {
+    const { workbench, table, bedShelf, shelves, chair } = furniture;
+
+    const levels = [];
+
+    if (this.x > shelves.x && this.x < shelves.x + shelves.w) {
+      levels.push(...shelves.h.map(h => p.height - h));
+    } else {
+      levels.push(p.height);
+    }
+
+    for (const { x, w, h } of [workbench, table, chair, bedShelf]) {
+      if (this.x > x && this.x < x + w) {
+        levels.push(p.height - h);
+      }
     }
 
     return levels;
   }
 
   get y() {
-    const possibleLevels = this.yLevels;
-    return possibleLevels[Math.min(possibleLevels.length - 1, this.level)];
+    return this.placement;
   }
 
   state() {
