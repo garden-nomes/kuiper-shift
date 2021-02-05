@@ -355,19 +355,37 @@ init({
 
       // draw interior
       if (ship.hullIntegrity > 0) {
+        // hud
         if (state.isDriving) {
           drawHud(ship, asteroidDistance, isMining);
         }
 
+        // frame
         p.sprite(0, 0, sprites.frame[0]);
 
-        if (state.isDriving) {
-          const screen = sprites.screen[~~(p.elapsed / 2) % sprites.screen.length];
-          p.sprite(39, 36, screen);
+        // console screen
+        if (state.isDriving && p.frame % 2 === 0) {
+          p.sprite(39, 36, sprites.screen[0]);
+
+          // draw over sprite to create animated text effect
+          for (let x = 41; x < 46; x++) {
+            if (noise.noise3D(x, 0, p.elapsed * 0.25) > 0.5) {
+              p.pixel(x, 37, dark);
+            }
+
+            if (noise.noise3D(x, 1, p.elapsed * 0.25) > 0.5) {
+              p.pixel(x, 39, dark);
+            }
+          }
         }
 
+        // plants
         plants.forEach(p => p.draw());
+
+        // miner
         miner.draw();
+
+        // text
         gui.draw();
       }
     }
