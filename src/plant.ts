@@ -1,5 +1,6 @@
 import { sprites } from "../asset-bundles";
 import { dark, light } from "./colors";
+import { furniture } from "./furniture";
 import PlantSystem from "./plant-system";
 
 export enum PlantState {
@@ -58,11 +59,17 @@ export default class Plant {
   }
 
   get y() {
-    if (this.x < 22) return p.height;
-    else if (this.x < 32) return p.height - 4;
-    else if (this.x < 70) return p.height;
-    else if (this.x < 79) return p.height - 5;
-    else return p.height;
+    const { shelf, table } = furniture;
+
+    if (this.x > shelf.x && this.x < shelf.x + shelf.w) {
+      return p.height - shelf.h;
+    }
+
+    if (this.x > table.x && this.x < table.x + table.w) {
+      return p.height - table.h;
+    }
+
+    return p.height;
   }
 
   state() {
