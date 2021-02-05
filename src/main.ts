@@ -280,6 +280,10 @@ init({
             miner.heldPlant = null;
             audio.playOneShot("thud");
           }
+        } else if (miner.wateringPlant) {
+          if (p.keyReleased("c")) {
+            miner.wateringPlant = null;
+          }
         } else {
           // add console interaction
           if (miner.x > 36 && miner.x < 50) {
@@ -312,8 +316,7 @@ init({
             gui.interactPlant(plant);
 
             if (p.keyPressed("c")) {
-              plant.water();
-              audio.playOneShot("blip-1");
+              miner.wateringPlant = plant;
             }
 
             if (p.keyPressed("x")) {
@@ -418,7 +421,9 @@ init({
     // background audio
     audio.setBackground(null);
 
-    if (isMining) {
+    if (miner.wateringPlant) {
+      audio.setBackground("blip-1", 0.5);
+    } else if (isMining) {
       audio.setBackground("laser", 0.5);
     } else if (ship.isMoving) {
       const volume = Math.min(Vec3.magSq(ship.vel), 3);

@@ -59,12 +59,9 @@ export default class Gui {
       case PlantState.Thirsty:
         this.text = ["the plant", "looks thirsty"];
         break;
-      case PlantState.Sickly:
-        this.text = ["the plant", "looks sickly"];
-        break;
     }
 
-    this.text = [...this.text, null, "[c] water", "[x] move"];
+    this.text = [...this.text, null, "hold [c] water", "[x] move"];
   }
 
   holdingPlant() {

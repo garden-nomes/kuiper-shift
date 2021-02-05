@@ -1,17 +1,40 @@
 import { sprites } from "../asset-bundles";
+import Plant from "./plant";
+
+function minAbs(a: number, b: number) {
+  Math.abs(a) < Math.abs(b) ? a : b;
+}
 
 export default class Miner {
   x = 2;
   flip = false;
   walkAnimTimer = 0;
   hasControl = true;
-  heldPlant: any = null;
+  heldPlant: Plant | null = null;
+  wateringPlant: Plant | null = null;
   moveRightOverride = false;
+  waterRate = 1;
 
   update() {
     const px = this.x;
 
-    if (this.hasControl) {
+    if (this.wateringPlant) {
+      // proceed towards the designated watering position
+      const targetX =
+        this.x < this.wateringPlant.x
+          ? ~~this.wateringPlant.x - 5
+          : ~~this.wateringPlant.x + 4;
+
+      if (Math.abs(this.x - targetX) < 10e-5) {
+        this.x = targetX;
+        this.flip = this.wateringPlant.x < this.x;
+        this.wateringPlant.hydration += p.deltaTime * this.waterRate;
+      } else {
+        const toTarget = targetX - this.x;
+        const maxMovement = p.deltaTime * 32 * (toTarget < 0 ? -1 : 1);
+        this.x += Math.abs(maxMovement) < Math.abs(toTarget) ? maxMovement : toTarget;
+      }
+    } else if (this.hasControl && !this.wateringPlant) {
       // move the miner
       if (p.keyDown("left")) this.x -= p.deltaTime * 32;
       if (p.keyDown("right")) this.x += p.deltaTime * 32;
