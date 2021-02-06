@@ -7,26 +7,26 @@ export namespace Vec3 {
     return [v0[0] + v1[0], v0[1] + v1[1], v0[2] + v1[2]];
   }
 
-  export function sub([x0, y0, z0]: number[], [x1, y1, z1]: number[]) {
-    return [x0 - x1, y0 - y1, z0 - z1];
+  export function sub(v0: number[], v1: number[]) {
+    return [v0[0] - v1[0], v0[1] - v1[1], v0[2] - v1[2]];
   }
 
-  export function magSq([x, y, z]: number[]) {
-    return x * x + y * y + z * z;
+  export function magSq(v: number[]) {
+    return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
   }
 
-  export function mag([x, y, z]: number[]) {
-    return Math.sqrt(x * x + y * y + z * z);
+  export function mag(v: number[]) {
+    return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
   }
 
   export function scale(v: number[], s: number) {
     return [v[0] * s, v[1] * s, v[2] * s];
   }
 
-  export function normalize([x, y, z]: number[]) {
-    const d = Math.sqrt(x * x + y * y + z * z);
+  export function normalize(v: number[]) {
+    const d = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     if (d === 0) return [0, 0, 1];
-    return [x / d, y / d, z / d];
+    return [v[0] / d, v[1] / d, v[2] / d];
   }
 }
 
@@ -131,12 +131,13 @@ export class Projection {
     ];
   }
 
-  projectToScreen([x, y, z]: number[]) {
-    [x, y, z] = [
-      this.m[0][0] * x + this.m[1][0] * y + this.m[2][0] * z + this.m[3][0],
-      this.m[0][1] * x + this.m[1][1] * y + this.m[2][1] * z + this.m[3][1],
-      this.m[0][2] * x + this.m[1][2] * y + this.m[2][2] * z + this.m[3][2]
-    ];
+  projectToScreen(v: number[]) {
+    const x =
+      this.m[0][0] * v[0] + this.m[1][0] * v[1] + this.m[2][0] * v[2] + this.m[3][0];
+    const y =
+      this.m[0][1] * v[0] + this.m[1][1] * v[1] + this.m[2][1] * v[2] + this.m[3][1];
+    const z =
+      this.m[0][2] * v[0] + this.m[1][2] * v[1] + this.m[2][2] * v[2] + this.m[3][2];
 
     return [(x * this.s) / z + p.width / 2, (y * -this.s) / z + p.height / 2, z / this.s];
   }
