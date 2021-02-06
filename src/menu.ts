@@ -51,10 +51,10 @@ export default class Menu {
       align: TextAlign.Center
     });
 
-    this.drawMenuItem("repair", 20, MenuOption.Repair, -this.repairCost(), " ore");
-    this.drawMenuItem("sell ore", 27, MenuOption.SellOre, sellPrice, "¢");
-    this.drawMenuItem("buy plant", 34, MenuOption.BuyPlant, -this.plantCost, "¢");
-    this.drawMenuItem("continue", 41, MenuOption.Continue);
+    this.drawMenuItem("repair", 19, MenuOption.Repair, -this.repairCost(), " ore");
+    this.drawMenuItem("sell ore", 26, MenuOption.SellOre, sellPrice, "¢");
+    this.drawMenuItem("buy plant", 33, MenuOption.BuyPlant, -this.plantCost, "¢");
+    this.drawMenuItem("continue", 40, MenuOption.Continue);
   }
 
   update() {
