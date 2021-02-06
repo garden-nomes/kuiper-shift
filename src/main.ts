@@ -69,7 +69,10 @@ function setupGameState(isReset = false) {
     titleFadeOut: false,
     titleFadeOutTimer: isReset ? 1 : 0,
     holdFullBeepTimer: 0,
-    miningParticleTimer: 0
+    miningParticleTimer: 0,
+    hasCalendar: false,
+    isCheckingCalendar: false,
+    day: 128
   };
 
   for (let i = 0; i < 100; i++) {
@@ -127,6 +130,7 @@ function gotoMenu() {
     }
 
     state.isAsleep = false;
+    state.day++;
     audio.playOneShot("wake");
   };
 
@@ -331,6 +335,21 @@ function loop() {
           }
         }
 
+        // calendar interaction
+        if (state.hasCalendar && miner.x > 15 && miner.x <= 19) {
+          if (state.isCheckingCalendar) {
+            gui.calendarText(state.day);
+          } else {
+            gui.interactCalendar();
+
+            if (p.keyPressed("c")) {
+              state.isCheckingCalendar = true;
+            }
+          }
+        } else {
+          state.isCheckingCalendar = false;
+        }
+
         // bed interaction
         if (miner.x < 11) {
           gui.interactBed();
@@ -400,6 +419,11 @@ function loop() {
 
       // frame
       p.sprite(0, 0, sprites.frame[0]);
+
+      // calendar
+      if (state.hasCalendar) {
+        p.sprite(16, 41, sprites.calendar[0]);
+      }
 
       // console screen
       if (state.isDriving) {

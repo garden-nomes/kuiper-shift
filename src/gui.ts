@@ -51,6 +51,14 @@ export default class Gui {
     this.text = ["Ⓒ rest"];
   }
 
+  interactCalendar() {
+    this.text = ["Ⓒ check calendar"];
+  }
+
+  calendarText(day: number) {
+    this.text = ["kuiper shift", "contract", null, `day ${day}`];
+  }
+
   interactPlant(plant: Plant) {
     switch (plant.state()) {
       case PlantState.Happy:
