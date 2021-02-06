@@ -2,6 +2,7 @@ import { TextAlign, VerticalAlign } from "pota-8";
 import Ship from "./ship";
 import { light, dark } from "./colors";
 import MovingNumber from "./moving-number";
+import audio from "./audio";
 
 function textWithBackground(
   text: string,
@@ -45,7 +46,7 @@ class ResultsScreen {
   private stepTimer = 0;
 
   constructor(ship: Ship) {
-    this.ore = new MovingNumber(ship.ore, 100);
+    this.ore = new MovingNumber(ship.ore, 1000);
     this.credits = new MovingNumber(ship.credits, 100);
     this.hull = new MovingNumber(ship.hullIntegrity, 1);
 
@@ -72,6 +73,7 @@ class ResultsScreen {
 
       this.step++;
       this.stepTimer = 0;
+      audio.playOneShot("blip-0");
     }
 
     this.ore.update();
@@ -264,8 +266,10 @@ class StoreScreen {
   tryBuyItem(value: number, item: number) {
     if (this.credits.value >= value) {
       this.credits.value -= value;
+      audio.playOneShot("blip-1");
       return true;
     } else {
+      audio.playOneShot("blip-0");
       this.flashPriceItem = item;
       this.flashPriceTimer = 0.5;
       return false;
