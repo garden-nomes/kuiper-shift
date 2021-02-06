@@ -32,8 +32,20 @@ function textWithBackground(
   return w;
 }
 
+export interface Resources {
+  credits: number;
+  ore: number;
+  hull: number;
+}
+
+export interface Purchases {
+  plants: number;
+  calendar: boolean;
+  screwdriver: boolean;
+}
+
 class ResultsScreen {
-  onContinue: (results: { hull: number; ore: number; credits: number }) => any = () => {};
+  onContinue: (result: Resources) => any = () => {};
 
   private ore: MovingNumber;
   private credits: MovingNumber;
@@ -45,10 +57,10 @@ class ResultsScreen {
   private step = 0;
   private stepTimer = 0;
 
-  constructor(ship: Ship) {
-    this.ore = new MovingNumber(ship.ore, 1000);
-    this.credits = new MovingNumber(ship.credits, 100);
-    this.hull = new MovingNumber(ship.hullIntegrity, 1);
+  constructor({ credits, hull, ore }: Resources) {
+    this.ore = new MovingNumber(ore, 1000);
+    this.credits = new MovingNumber(credits, 100);
+    this.hull = new MovingNumber(hull, 1);
 
     this.repairCost = Math.min((1 - this.hull.value) * 1000, this.ore.value);
     this.sellValue = (this.ore.value - this.repairCost) / 10;
@@ -153,27 +165,24 @@ class ResultsScreen {
 }
 
 class StoreScreen {
-  onContinue: (
-    credits: number,
-    purchases: { plants: number; calendar: boolean; screwdriver: boolean }
-  ) => any = () => {};
+  onContinue: (credits: number, purchases: Purchases) => any = () => {};
 
   private credits: MovingNumber;
   private selected = 0;
 
   private hasCalendar: boolean;
-  private hasScredriver: boolean;
+  private hasScrewdriver: boolean;
 
   private purchases = { plants: 0, calendar: false, screwdriver: false };
 
   private flashPriceTimer = 0;
   private flashPriceItem = 0;
 
-  constructor(ship: Ship) {
-    this.credits = new MovingNumber(ship.credits, 100);
+  constructor({ credits }: Resources, hasCalendar: boolean, hasScrewdriver: boolean) {
+    this.credits = new MovingNumber(credits, 100);
 
-    this.hasCalendar = false;
-    this.hasScredriver = false;
+    this.hasCalendar = hasCalendar;
+    this.hasScrewdriver = hasScrewdriver;
   }
 
   update() {
@@ -241,7 +250,7 @@ class StoreScreen {
     }
     top += 8;
 
-    if (!this.hasScredriver && !this.purchases.screwdriver) {
+    if (!this.hasScrewdriver && !this.purchases.screwdriver) {
       textWithBackground("screwdriver", left, top, this.selected === 2);
       textWithBackground("-100¢", right, top, this.flash(2), TextAlign.Right);
       if (this.selected === 2) this.drawArrow(left, top + 3);
@@ -259,7 +268,7 @@ class StoreScreen {
       this.selected = (this.selected + 4) % 4;
     } while (
       ((this.hasCalendar || this.purchases.calendar) && this.selected === 1) ||
-      ((this.hasScredriver || this.purchases.screwdriver) && this.selected === 2)
+      ((this.hasScrewdriver || this.purchases.screwdriver) && this.selected === 2)
     );
   }
 
@@ -294,24 +303,23 @@ class StoreScreen {
 }
 
 export default class Menu {
-  onContinue: () => any = () => {};
-  onBuyPlant: () => any = () => {};
+  onContinue: (resource: Resources, purchases: Purchases) => any = () => {};
 
   private screen: ResultsScreen | StoreScreen;
 
-  constructor(private ship: Ship) {
-    this.screen = new ResultsScreen(ship);
+  constructor({ credits, ore, hull }: Resources, hasCalendar: boolean) {
+    this.screen = new ResultsScreen({
+      credits: Math.floor(credits),
+      ore: Math.floor(ore),
+      hull: Math.floor(hull * 100) / 100
+    });
 
-    this.screen.onContinue = ({ credits, hull, ore }) => {
-      ship.credits = credits;
-      ship.hullIntegrity = hull;
-      ship.ore = ore;
+    this.screen.onContinue = resources => {
+      this.screen = new StoreScreen(resources, hasCalendar, false);
 
-      this.screen = new StoreScreen(ship);
-      this.screen.onContinue = (credits, { plants }) => {
-        ship.credits = credits;
-        for (let i = 0; i < plants; i++) this.onBuyPlant();
-        this.onContinue();
+      this.screen.onContinue = (credits, purchases) => {
+        resources.credits = credits;
+        this.onContinue(resources, purchases);
       };
     };
   }

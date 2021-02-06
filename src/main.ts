@@ -47,7 +47,7 @@ function setupGameState(isReset = false) {
   const ship = new Ship();
   const miner = new Miner();
   const gui = new Gui();
-  const menu = new Menu(ship);
+  const menu: Menu | null = null;
 
   const state = {
     asteroids,
@@ -104,15 +104,30 @@ function reset() {
 }
 
 function gotoMenu() {
-  state.menu = new Menu(state.ship);
+  state.menu = new Menu(
+    {
+      hull: state.ship.hullIntegrity,
+      ore: state.ship.ore,
+      credits: state.ship.credits
+    },
+    state.hasCalendar
+  );
 
-  state.menu.onContinue = () => {
+  state.menu.onContinue = (resources, purchases) => {
+    state.ship.hullIntegrity = resources.hull;
+    state.ship.ore = resources.ore;
+    state.ship.credits = resources.credits;
+
+    for (let i = 0; i < purchases.plants; i++) {
+      state.plants.push(new Plant());
+    }
+
+    if (purchases.calendar) {
+      state.hasCalendar = true;
+    }
+
     state.isAsleep = false;
     audio.playOneShot("wake");
-  };
-
-  state.menu.onBuyPlant = () => {
-    state.plants.push(new Plant());
   };
 
   state.isAsleep = true;
