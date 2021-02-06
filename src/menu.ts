@@ -307,7 +307,11 @@ export default class Menu {
 
   private screen: ResultsScreen | StoreScreen;
 
-  constructor({ credits, ore, hull }: Resources, hasCalendar: boolean) {
+  constructor(
+    { credits, ore, hull }: Resources,
+    hasCalendar: boolean,
+    hasScrewdriver: boolean
+  ) {
     this.screen = new ResultsScreen({
       credits: Math.floor(credits),
       ore: Math.floor(ore),
@@ -315,7 +319,7 @@ export default class Menu {
     });
 
     this.screen.onContinue = resources => {
-      this.screen = new StoreScreen(resources, hasCalendar, false);
+      this.screen = new StoreScreen(resources, hasCalendar, hasScrewdriver);
 
       this.screen.onContinue = (credits, purchases) => {
         resources.credits = credits;

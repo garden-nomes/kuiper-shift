@@ -55,6 +55,22 @@ export default class Gui {
     this.text = ["Ⓒ check calendar"];
   }
 
+  interactHatchClosed() {
+    this.text = ["Ⓒ open hatch"];
+  }
+
+  needScrewdriver() {
+    this.text = ["you need a", "screwdriver", "for that"];
+  }
+
+  toggleHardMode(isHardMode: boolean) {
+    if (isHardMode) {
+      this.text = ["Ⓒ enable", "auto-braking"];
+    } else {
+      this.text = ["Ⓒ disable", "auto-braking", null, "(hard mode)"];
+    }
+  }
+
   calendarText(day: number) {
     this.text = ["kuiper shift", "contract", null, `day ${day}`];
   }

@@ -72,7 +72,10 @@ function setupGameState(isReset = false) {
     miningParticleTimer: 0,
     hasCalendar: false,
     isCheckingCalendar: false,
-    day: 128
+    day: 128,
+    hasScrewdriver: false,
+    isHatchOpen: false,
+    isHardMode: false
   };
 
   for (let i = 0; i < 100; i++) {
@@ -113,7 +116,8 @@ function gotoMenu() {
       ore: state.ship.ore,
       credits: state.ship.credits
     },
-    state.hasCalendar
+    state.hasCalendar,
+    state.hasScrewdriver
   );
 
   state.menu.onContinue = (resources, purchases) => {
@@ -127,6 +131,10 @@ function gotoMenu() {
 
     if (purchases.calendar) {
       state.hasCalendar = true;
+    }
+
+    if (purchases.screwdriver) {
+      state.hasScrewdriver = true;
     }
 
     state.isAsleep = false;
@@ -324,42 +332,7 @@ function loop() {
           miner.wateringPlant = null;
         }
       } else {
-        // add console interaction
-        if (miner.x > 36 && miner.x < 50) {
-          gui.interactConsole();
-
-          if (p.keyPressed("c")) {
-            state.isDriving = true;
-            state.showControls = true;
-            audio.playOneShot("on");
-          }
-        }
-
-        // calendar interaction
-        if (state.hasCalendar && miner.x > 15 && miner.x <= 19) {
-          if (state.isCheckingCalendar) {
-            gui.calendarText(state.day);
-          } else {
-            gui.interactCalendar();
-
-            if (p.keyPressed("c")) {
-              state.isCheckingCalendar = true;
-            }
-          }
-        } else {
-          state.isCheckingCalendar = false;
-        }
-
-        // bed interaction
-        if (miner.x < 11) {
-          gui.interactBed();
-
-          if (p.keyPressed("c")) {
-            gotoMenu();
-          }
-        }
-
-        // plant interaction
+        // plant interaction takes priority
         const plant = plants.find(p => Math.abs(miner.x - p.x) < 2);
         if (plant) {
           plant.highlight = true;
@@ -372,6 +345,64 @@ function loop() {
           if (p.keyPressed("x")) {
             miner.heldPlant = plant;
             audio.playOneShot("thud");
+          }
+        } else {
+          // add console interaction
+          if (miner.x > 36 && miner.x < 50) {
+            gui.interactConsole();
+
+            if (p.keyPressed("c")) {
+              state.isDriving = true;
+              state.showControls = true;
+              audio.playOneShot("on");
+            }
+          }
+
+          // calendar interaction
+          if (state.hasCalendar && miner.x > 15 && miner.x <= 19) {
+            if (state.isCheckingCalendar) {
+              gui.calendarText(state.day);
+            } else {
+              gui.interactCalendar();
+
+              if (p.keyPressed("c")) {
+                state.isCheckingCalendar = true;
+              }
+            }
+          } else {
+            state.isCheckingCalendar = false;
+          }
+
+          // hatch interaction
+          if (miner.x > 32 && miner.x <= 36) {
+            if (state.isHatchOpen) {
+              if (state.hasScrewdriver) {
+                gui.toggleHardMode(state.isHardMode);
+
+                if (p.keyPressed("c")) {
+                  state.isHardMode = !state.isHardMode;
+                }
+              } else {
+                gui.needScrewdriver();
+              }
+            } else {
+              gui.interactHatchClosed();
+
+              if (p.keyPressed("c")) {
+                state.isHatchOpen = true;
+              }
+            }
+          } else {
+            state.isHatchOpen = false;
+          }
+
+          // bed interaction
+          if (miner.x < 11) {
+            gui.interactBed();
+
+            if (p.keyPressed("c")) {
+              gotoMenu();
+            }
           }
         }
       }
@@ -424,6 +455,17 @@ function loop() {
       if (state.hasCalendar) {
         p.sprite(16, 41, sprites.calendar[0]);
       }
+
+      // hatch
+      let hatchFrame: number;
+      if (state.isHatchOpen && state.isHardMode && state.hasScrewdriver) {
+        hatchFrame = 1;
+      } else if (state.isHatchOpen && state.hasScrewdriver) {
+        hatchFrame = p.elapsed % 0.4 < 0.2 ? 1 : 2;
+      } else {
+        hatchFrame = 0;
+      }
+      p.sprite(28, 38, sprites.hatch[hatchFrame]);
 
       // console screen
       if (state.isDriving) {
