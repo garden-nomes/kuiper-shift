@@ -10,6 +10,26 @@ export enum MenuOption {
   Continue
 }
 
+class MovingNumber {
+  target: number;
+
+  constructor(public value: number, private speed: number) {
+    this.target = value;
+  }
+
+  update(value: number) {
+    this.target = value;
+
+    if (this.value < this.target) {
+      this.value += p.deltaTime * this.speed;
+      this.value = Math.min(this.value, this.target);
+    } else if (this.value > this.target) {
+      this.value -= p.deltaTime * this.speed;
+      this.value = Math.max(this.value, this.target);
+    }
+  }
+}
+
 export default class Menu {
   selected = MenuOption.Repair;
   oreToCredits = 0.1;
@@ -17,8 +37,13 @@ export default class Menu {
   plantCost = 30;
   onBuyPlant: () => any = () => {};
   onContinue: () => any = () => {};
+  ore: MovingNumber;
+  credits: MovingNumber;
+  hullIntegrity: MovingNumber;
 
-  constructor(public ship: Ship) {}
+  constructor(public ship: Ship) {
+    this.reset();
+  }
 
   reset() {
     this.selected = MenuOption.Repair;
@@ -27,13 +52,17 @@ export default class Menu {
     this.ship.ore = Math.round(this.ship.ore);
     this.ship.credits = Math.round(this.ship.credits);
     this.ship.hullIntegrity = Math.round(this.ship.hullIntegrity * 100) / 100;
+
+    this.ore = new MovingNumber(this.ship.ore, 500);
+    this.credits = new MovingNumber(this.ship.credits, 60);
+    this.hullIntegrity = new MovingNumber((this.ship.hullIntegrity * 100) / 100, 100);
   }
 
   draw() {
-    const hull = Math.floor(this.ship.hullIntegrity * 100);
-    const ore = Math.floor(this.ship.ore);
-    const credits = this.ship.credits;
-    const sellPrice = this.ship.ore * this.oreToCredits;
+    const hull = Math.floor(this.hullIntegrity.value * 100);
+    const ore = Math.floor(this.ore.value);
+    const credits = this.credits.value;
+    const sellPrice = this.ore.value * this.oreToCredits;
 
     const hullText = `hull: ${hull.toFixed(0)}%`;
     let w = p.textWidth(hullText);
@@ -101,6 +130,10 @@ export default class Menu {
           break;
       }
     }
+
+    this.ore.update(this.ship.ore);
+    this.credits.update(this.ship.credits);
+    this.hullIntegrity.update(this.ship.hullIntegrity);
   }
 
   private repairCost() {
