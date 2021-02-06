@@ -1,6 +1,6 @@
 import { init, TextAlign, VerticalAlign } from "pota-8";
 import * as SimplexNoise_ from "simplex-noise";
-import fontSrc from "../assets/Gizmo199lightfont.png";
+import fontSrc from "../assets/font.png";
 import { sprites, spritesheet } from "../asset-bundles";
 import { Matrix, Projection, raycastSphere, Vec3 } from "./math";
 import Ship from "./ship";
@@ -65,7 +65,7 @@ function setupGameState(isReset = false) {
     menuFadeInTimer: 0,
     dreamBackdrop: 1,
     isAsleep: false,
-    isTitleScreen: false,
+    isTitleScreen: true,
     titleFadeOut: false,
     titleFadeOutTimer: isReset ? 1 : 0,
     holdFullBeepTimer: 0,
