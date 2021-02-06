@@ -29,7 +29,35 @@ export default class Menu {
     this.ship.hullIntegrity = Math.round(this.ship.hullIntegrity * 100) / 100;
   }
 
-  loop() {
+  draw() {
+    const hull = Math.floor(this.ship.hullIntegrity * 100);
+    const ore = Math.floor(this.ship.ore);
+    const credits = this.ship.credits;
+    const sellPrice = this.ship.ore * this.oreToCredits;
+
+    const hullText = `hull: ${hull.toFixed(0)}%`;
+    let w = p.textWidth(hullText);
+    p.rect(p.width / 2 - w / 2 - 0.5, 1, w + 2, 7, light);
+    p.text(hullText, p.width / 2, 2, {
+      color: dark,
+      align: TextAlign.Center
+    });
+
+    const resourcesText = `${ore.toFixed(0)} ore / ${credits.toFixed(0)}¢`;
+    w = p.textWidth(resourcesText);
+    p.rect(p.width / 2 - w / 2 - 0.5, 9, w + 2, 7, light);
+    p.text(resourcesText, p.width / 2, 10, {
+      color: dark,
+      align: TextAlign.Center
+    });
+
+    this.drawMenuItem("repair", 20, MenuOption.Repair, -this.repairCost(), " ore");
+    this.drawMenuItem("sell ore", 27, MenuOption.SellOre, sellPrice, "¢");
+    this.drawMenuItem("buy plant", 34, MenuOption.BuyPlant, -this.plantCost, "¢");
+    this.drawMenuItem("continue", 41, MenuOption.Continue);
+  }
+
+  update() {
     while (this.isDisabled(this.selected)) {
       this.selected = (this.selected + 1 + 4) % 4;
     }
@@ -73,26 +101,6 @@ export default class Menu {
           break;
       }
     }
-
-    const hull = Math.floor(this.ship.hullIntegrity * 100);
-    const ore = Math.floor(this.ship.ore);
-    const credits = this.ship.credits;
-    const sellPrice = this.ship.ore * this.oreToCredits;
-
-    p.text(`hull: ${hull.toFixed(0)}%`, p.width / 2, 2, {
-      color: dark,
-      align: TextAlign.Center
-    });
-
-    p.text(`${ore.toFixed(0)} ore / ${credits.toFixed(0)}¢`, p.width / 2, 10, {
-      color: dark,
-      align: TextAlign.Center
-    });
-
-    this.drawMenuItem("repair", 20, MenuOption.Repair, -this.repairCost(), " ore");
-    this.drawMenuItem("sell ore", 27, MenuOption.SellOre, sellPrice, "¢");
-    this.drawMenuItem("buy plant", 34, MenuOption.BuyPlant, -this.plantCost, "¢");
-    this.drawMenuItem("continue", 41, MenuOption.Continue);
   }
 
   private repairCost() {
@@ -111,23 +119,22 @@ export default class Menu {
   ) {
     if (this.isDisabled(id)) return;
 
-    if (this.selected === id) {
-      const w = p.textWidth(text);
-      p.rect(4, y - 1, w + 2, 7, dark);
-      p.text(text, 5, y, { color: light });
+    const isSelected = this.selected === id;
+    const w = p.textWidth(text);
+    p.rect(4, y - 1, w + 2, 7, isSelected ? dark : light);
+    p.text(text, 5, y, { color: isSelected ? light : dark });
 
+    if (isSelected) {
       p.pixel(2, y + 2, dark);
       p.pixel(1, y + 1, dark);
       p.pixel(1, y + 3, dark);
-    } else {
-      p.text(text, 5, y, { color: dark });
     }
 
     if (cost && cost !== 0) {
-      p.text(`${cost > 0 ? "+" : ""}${cost.toFixed(0)}${units || ""}`, p.width - 2, y, {
-        color: dark,
-        align: TextAlign.Right
-      });
+      const costText = `${cost > 0 ? "+" : ""}${cost.toFixed(0)}${units || ""}`;
+      const w = p.textWidth(costText);
+      p.rect(p.width - 2 - w - 2, y - 1, w + 2, 7, light);
+      p.text(costText, p.width - 2, y, { color: dark, align: TextAlign.Right });
     }
   }
 

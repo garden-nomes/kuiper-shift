@@ -162,8 +162,11 @@ function loop() {
   } else if (state.dreamBackdrop < 1 && state.isAsleep) {
     state.dreamBackdrop += p.deltaTime;
   } else if (state.isAsleep) {
-    menu.loop();
+    ship.rot = Matrix.yaw(p.elapsed * 0.05);
+    ship.pos = Matrix.mult3x3vec(ship.rot, [0, 0, -5]);
     state.menuFadeInTimer += p.deltaTime;
+
+    menu.update();
   } else {
     ship.hasControl = state.isDriving;
     miner.hasControl = !state.isDriving;
@@ -341,7 +344,7 @@ function loop() {
     }
   }
 
-  if (state.isTitleScreen || state.dreamBackdrop < 1) {
+  if (state.isTitleScreen || state.dreamBackdrop < 1 || state.isAsleep) {
     // create exterior camera projection
     const projection = new Projection(ship.pos, ship.rot, p.width / 2);
 
@@ -361,14 +364,14 @@ function loop() {
     p.center(p.width / 2 + shakeX, p.height / 2 + shakeY);
 
     // draw asteroids/particles
-    asteroids.forEach(a => a.draw(projection));
+    asteroids.forEach(a => a.draw(projection, state.isAsleep));
     particles.forEach(p => p.draw(projection));
 
     // undo screen shake for interior
     p.center(p.width / 2, p.height / 2);
 
     // draw interior
-    if (ship.hullIntegrity > 0 && !state.isTitleScreen) {
+    if (ship.hullIntegrity > 0 && !state.isTitleScreen && !state.isAsleep) {
       // hud
       if (state.isDriving) {
         drawHud(ship, asteroidDistance, isMining);
@@ -445,6 +448,8 @@ function loop() {
         verticalAlign: VerticalAlign.Bottom
       });
     }
+  } else if (state.isAsleep) {
+    menu.draw();
   }
 
   // draw the fade in/out effect
