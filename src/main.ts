@@ -405,34 +405,41 @@ function loop() {
   }
 
   if (state.isTitleScreen) {
-    const title = "super\nasteroid\nminer";
-    p.text(title, p.width / 2 + 1, 10, {
-      color: light,
-      align: TextAlign.Center
-    });
+    let ox = Math.round(Math.cos(p.elapsed));
+    let oy = Math.round(Math.sin(p.elapsed + 0.2));
 
-    p.text(title, p.width / 2 - 1, 10, {
-      color: light,
-      align: TextAlign.Center
-    });
+    p.circle(p.width / 2 + ox, 14 + oy, 18, light);
 
-    p.text(title, p.width / 2, 10 + 1, {
-      color: light,
-      align: TextAlign.Center
-    });
+    const title = sprites.title[0];
+    p.sprite(p.width / 2 - title.w / 2 + 1, 10, title);
 
-    p.text(title, p.width / 2, 10 - 1, {
-      color: light,
-      align: TextAlign.Center
-    });
+    for (let lx = 22; lx < 55; lx++) {
+      if (noise.noise2D(lx, p.elapsed * 0.5) < 0.5) {
+        p.pixel(lx, 8, dark);
+      }
+    }
 
-    p.text(title, p.width / 2, 10, {
-      color: dark,
-      align: TextAlign.Center
-    });
+    for (let lx = 32; lx < 61; lx++) {
+      if (noise.noise2D(lx, p.elapsed * 0.5) < 0.5) {
+        p.pixel(lx, 23, dark);
+      }
+    }
 
     if (p.elapsed % 2 < 4 / 3) {
-      p.text("[c] start", p.width / 2, p.height - 10, {
+      // prettier-ignore
+      // text shadow effect
+      for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        p.text("Ⓒ start", p.width / 2 + ox, p.height - 6 + oy, {
+          color: dark,
+          align: TextAlign.Center,
+          verticalAlign: VerticalAlign.Bottom
+        });
+      }
+
+      // fills in some awkward gaps in the text shadow
+      p.rect(p.width / 2 - 4, p.height - 9, 17, 3, dark);
+
+      p.text("Ⓒ start", p.width / 2, p.height - 6, {
         color: light,
         align: TextAlign.Center,
         verticalAlign: VerticalAlign.Bottom
@@ -470,7 +477,7 @@ function loop() {
   audio.setBackground(null);
 
   if (state.isTitleScreen) {
-    audio.setBackground("claire-de-lune", 1);
+    audio.setBackground("claire-de-lune", 0.5);
   } else if (miner.wateringPlant) {
     audio.setBackground("blip-1", 0.5);
   } else if (isMining) {
