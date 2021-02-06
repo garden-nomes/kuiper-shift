@@ -159,9 +159,11 @@ function loop() {
     } else {
       miner.x = 4;
     }
-  } else if (state.dreamBackdrop < 1 && state.isAsleep) {
-    state.dreamBackdrop += p.deltaTime;
   } else if (state.isAsleep) {
+    if (state.dreamBackdrop < 1) {
+      state.dreamBackdrop += p.deltaTime;
+    }
+
     ship.rot = Matrix.yaw(p.elapsed * 0.05);
     ship.pos = Matrix.mult3x3vec(ship.rot, [0, 0, -5]);
     state.menuFadeInTimer += p.deltaTime;
@@ -448,7 +450,7 @@ function loop() {
         verticalAlign: VerticalAlign.Bottom
       });
     }
-  } else if (state.isAsleep) {
+  } else if (state.isAsleep && state.dreamBackdrop >= 1) {
     menu.draw();
   }
 
