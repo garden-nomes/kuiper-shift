@@ -206,6 +206,7 @@ function loop() {
     }
   } else {
     ship.hasControl = state.isDriving;
+    ship.isBrakingEnabled = !state.isHardMode;
     miner.hasControl = !state.isDriving;
     miner.moveRightOverride = false;
 

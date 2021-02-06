@@ -22,6 +22,7 @@ export default class Ship {
   damageThreshold = 0.1;
   onDamage: () => any = () => {};
   hullIntegrity = 1;
+  isBrakingEnabled = true;
 
   update() {
     this.state = ShipState.Idle;
@@ -41,7 +42,7 @@ export default class Ship {
 
       if ((p.keyDown("z") || p.keyDown("x")) && this.hasControl) {
         this.state = ShipState.Accelerating;
-      } else {
+      } else if (this.isBrakingEnabled) {
         // apply braking force if in motion
         const speed = Vec3.mag(this.vel);
         if (speed > 10e-4) {
