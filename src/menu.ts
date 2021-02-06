@@ -133,8 +133,8 @@ export default class Menu {
     if (cost && cost !== 0) {
       const costText = `${cost > 0 ? "+" : ""}${cost.toFixed(0)}${units || ""}`;
       const w = p.textWidth(costText);
-      p.rect(p.width - 2 - w - 2, y - 1, w + 2, 7, light);
-      p.text(costText, p.width - 2, y, { color: dark, align: TextAlign.Right });
+      p.rect(44, y - 1, w + 2, 7, light);
+      p.text(costText, 45, y, { color: dark, align: TextAlign.Left });
     }
   }
 
