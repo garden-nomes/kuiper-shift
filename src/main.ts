@@ -94,15 +94,6 @@ function setupGameState(isReset = false) {
     audio.playOneShot("crash");
   };
 
-  menu.onContinue = () => {
-    state.isAsleep = false;
-    audio.playOneShot("wake");
-  };
-
-  menu.onBuyPlant = () => {
-    plants.push(new Plant());
-  };
-
   return state;
 }
 
@@ -112,8 +103,26 @@ function reset() {
   state = setupGameState(true);
 }
 
+function gotoMenu() {
+  state.menu = new Menu(state.ship);
+
+  state.menu.onContinue = () => {
+    state.isAsleep = false;
+    audio.playOneShot("wake");
+  };
+
+  state.menu.onBuyPlant = () => {
+    state.plants.push(new Plant());
+  };
+
+  state.isAsleep = true;
+  state.menuFadeInTimer = 0;
+  state.holdFullBeepTimer = 0;
+  audio.playOneShot("sleep");
+}
+
 function loop() {
-  const { ship, miner, plants, asteroids, particles, stars, gui, menu } = state;
+  const { ship, miner, plants, asteroids, particles, stars, gui } = state;
 
   p.clear(state.isTitleScreen || state.dreamBackdrop < 1 ? dark : light);
 
@@ -162,13 +171,12 @@ function loop() {
   } else if (state.isAsleep) {
     if (state.dreamBackdrop < 1) {
       state.dreamBackdrop += p.deltaTime;
+    } else {
+      state.menu.update();
+      ship.rot = Matrix.yaw(p.elapsed * 0.05);
+      ship.pos = Matrix.mult3x3vec(ship.rot, [0, 0, -5]);
+      state.menuFadeInTimer += p.deltaTime;
     }
-
-    ship.rot = Matrix.yaw(p.elapsed * 0.05);
-    ship.pos = Matrix.mult3x3vec(ship.rot, [0, 0, -5]);
-    state.menuFadeInTimer += p.deltaTime;
-
-    menu.update();
   } else {
     ship.hasControl = state.isDriving;
     miner.hasControl = !state.isDriving;
@@ -313,11 +321,7 @@ function loop() {
           gui.interactBed();
 
           if (p.keyPressed("c")) {
-            menu.reset();
-            state.isAsleep = true;
-            state.menuFadeInTimer = 0;
-            state.holdFullBeepTimer = 0;
-            audio.playOneShot("sleep");
+            gotoMenu();
           }
         }
 
@@ -451,7 +455,7 @@ function loop() {
       });
     }
   } else if (state.isAsleep && state.dreamBackdrop >= 1) {
-    menu.draw();
+    state.menu.draw();
   }
 
   // draw the fade in/out effect
