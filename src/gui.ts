@@ -65,9 +65,9 @@ export default class Gui {
 
   toggleHardMode(isHardMode: boolean) {
     if (isHardMode) {
-      this.text = ["Ⓒ enable", "auto-braking"];
+      this.text = ["Ⓒ re-enable", "auto-braking", null, "mind your", "velcity"];
     } else {
-      this.text = ["Ⓒ disable", "auto-braking", null, "(hard mode)"];
+      this.text = ["Ⓒ disable", "auto-braking", null, "caution!", "(hard mode)"];
     }
   }
 
