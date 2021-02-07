@@ -79,13 +79,19 @@ function setupGameState(isReset = false) {
   };
 
   for (let i = 0; i < 100; i++) {
-    asteroids.push(
-      new Asteroid([
-        Math.random() * 20 - 10,
-        Math.random() * 20 - 10,
-        Math.random() * 20 - 10
-      ])
-    );
+    const pos = [
+      Math.random() * 20 - 10,
+      Math.random() * 20 - 10,
+      Math.random() * 20 - 10
+    ];
+
+    // don't drop asteroids on top of player
+    if (Vec3.magSq(pos) < 1.5 * 1.5) {
+      i--;
+      continue;
+    }
+
+    asteroids.push(new Asteroid(pos));
   }
 
   for (let i = 0; i < 100; i++) {
