@@ -578,7 +578,7 @@ function loop() {
     audio.setBackground("laser", 0.5);
   } else if (isMining) {
     audio.setBackground("laser", 0.5);
-  } else if (ship.isMoving) {
+  } else if (ship.isMoving && ship.hullIntegrity > 0) {
     const volume = Math.min(Vec3.magSq(ship.vel), 3);
     audio.setBackground("rumble", volume);
   }

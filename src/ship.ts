@@ -19,7 +19,6 @@ export default class Ship {
   state = ShipState.Idle;
   ore = 0;
   credits = 0;
-  damageThreshold = 0.1;
   onDamage: () => any = () => {};
   hullIntegrity = 1;
   isBrakingEnabled = true;
@@ -95,10 +94,9 @@ export default class Ship {
       )
     );
 
-    if (Vec3.magSq(this.vel) > this.damageThreshold * this.damageThreshold) {
-      this.hullIntegrity -= 0.25;
-      this.onDamage();
-    }
+    const damage = Math.min(Vec3.mag(this.vel) * 0.5, 0.4 + Math.random() * 0.1);
+    this.hullIntegrity -= damage;
+    this.onDamage();
   }
 
   get speed() {
