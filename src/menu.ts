@@ -263,6 +263,8 @@ class StoreScreen {
   }
 
   moveSelect(down: boolean) {
+    audio.playOneShot("blip-0");
+
     do {
       this.selected += down ? 1 : -1;
       this.selected = (this.selected + 4) % 4;
@@ -275,10 +277,10 @@ class StoreScreen {
   tryBuyItem(value: number, item: number) {
     if (this.credits.value >= value) {
       this.credits.value -= value;
-      audio.playOneShot("blip-1");
+      audio.playOneShot("blip-0");
       return true;
     } else {
-      audio.playOneShot("blip-0");
+      audio.playOneShot("notice");
       this.flashPriceItem = item;
       this.flashPriceTimer = 0.5;
       return false;
@@ -319,6 +321,7 @@ export default class Menu {
     });
 
     this.screen.onContinue = resources => {
+      audio.playOneShot("blip-0");
       this.screen = new StoreScreen(resources, hasCalendar, hasScrewdriver);
 
       this.screen.onContinue = (credits, purchases) => {

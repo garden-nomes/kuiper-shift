@@ -306,7 +306,7 @@ function loop() {
 
         state.holdFullBeepTimer -= p.deltaTime;
         if (state.holdFullBeepTimer <= 0) {
-          audio.playOneShot("three-beep");
+          audio.playOneShot("notice");
           state.holdFullBeepTimer = 3;
         }
       }
@@ -345,7 +345,7 @@ function loop() {
 
           if (p.keyPressed("x")) {
             miner.heldPlant = plant;
-            audio.playOneShot("thud");
+            audio.playOneShot("blip-0");
           }
         } else {
           // add console interaction
@@ -368,6 +368,7 @@ function loop() {
 
               if (p.keyPressed("c")) {
                 state.isCheckingCalendar = true;
+                audio.playOneShot("blip-0");
               }
             }
           } else {
@@ -382,6 +383,7 @@ function loop() {
 
                 if (p.keyPressed("c")) {
                   state.isHardMode = !state.isHardMode;
+                  audio.playOneShot("blip-0");
                 }
               } else {
                 gui.needScrewdriver();
@@ -391,6 +393,7 @@ function loop() {
 
               if (p.keyPressed("c")) {
                 state.isHatchOpen = true;
+                audio.playOneShot("blip-0");
               }
             }
           } else {
@@ -570,9 +573,9 @@ function loop() {
   audio.setBackground(null);
 
   if (state.isTitleScreen) {
-    audio.setBackground("claire-de-lune", 0.5);
+    audio.setBackground("theme", 0.2);
   } else if (miner.wateringPlant) {
-    audio.setBackground("blip-1", 0.5);
+    audio.setBackground("laser", 0.5);
   } else if (isMining) {
     audio.setBackground("laser", 0.5);
   } else if (ship.isMoving) {
