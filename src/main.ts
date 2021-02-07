@@ -116,6 +116,16 @@ function reset() {
   state = setupGameState(true);
 }
 
+function movePlantsOutOfWayOfCalendar() {
+  for (const plant of state.plants) {
+    const d = plant.x - 17;
+
+    if (Math.abs(d) < 2) {
+      plant.x += (3 * d) / Math.abs(d);
+    }
+  }
+}
+
 function gotoMenu() {
   state.menu = new Menu(
     {
@@ -138,6 +148,7 @@ function gotoMenu() {
 
     if (purchases.calendar) {
       state.hasCalendar = true;
+      movePlantsOutOfWayOfCalendar();
     }
 
     if (purchases.screwdriver) {
