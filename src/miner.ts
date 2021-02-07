@@ -13,7 +13,6 @@ export default class Miner {
   heldPlant: Plant | null = null;
   wateringPlant: Plant | null = null;
   moveRightOverride = false;
-  waterRate = 1;
 
   update() {
     const px = this.x;
@@ -28,13 +27,14 @@ export default class Miner {
       if (Math.abs(this.x - targetX) < 10e-5) {
         this.x = targetX;
         this.flip = this.wateringPlant.x < this.x;
-        this.wateringPlant.hydration += p.deltaTime * this.waterRate;
+        this.wateringPlant.hydration = 1.02;
+        this.wateringPlant = null;
       } else {
         const toTarget = targetX - this.x;
         const maxMovement = p.deltaTime * 32 * (toTarget < 0 ? -1 : 1);
         this.x += Math.abs(maxMovement) < Math.abs(toTarget) ? maxMovement : toTarget;
       }
-    } else if (this.hasControl && !this.wateringPlant) {
+    } else if (this.hasControl) {
       // move the miner
       if (p.keyDown("left")) this.x -= p.deltaTime * 32;
       if (p.keyDown("right")) this.x += p.deltaTime * 32;

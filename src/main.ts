@@ -339,10 +339,6 @@ function loop() {
           miner.heldPlant = null;
           audio.playOneShot("thud");
         }
-      } else if (miner.wateringPlant) {
-        if (p.keyReleased("c")) {
-          miner.wateringPlant = null;
-        }
       } else {
         // plant interaction takes priority
         const plant = plants.find(p => Math.abs(miner.x - p.x) < 2);
