@@ -1,11 +1,18 @@
+import {
+  AudioContext,
+  GainNode,
+  AudioBufferSourceNode,
+  AudioBuffer
+} from "standardized-audio-context";
+
 import { audiosprite, sounds } from "../asset-bundles";
 
 export type Sound = keyof typeof sounds;
 
 export class Audio {
   private ctx: AudioContext;
-  private gain: GainNode;
-  private source: AudioBufferSourceNode | null = null;
+  private gain: GainNode<AudioContext>;
+  private source: AudioBufferSourceNode<AudioContext> | null = null;
   private buffer: AudioBuffer | null = null;
 
   private background: [Sound, number] | null = null;
@@ -17,6 +24,10 @@ export class Audio {
     this.gain = this.ctx.createGain();
     this.gain.connect(this.ctx.destination);
     this.loadAudioSprite();
+
+    window.addEventListener("click", () => {
+      this.ctx.resume();
+    });
   }
 
   async loadAudioSprite() {
