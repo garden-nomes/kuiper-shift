@@ -35,6 +35,17 @@ export default class Gui {
     this.text = ["Ⓩ forward", "Ⓧ reverse", "←→↑↓ turn", null, "Ⓒ cancel"];
   }
 
+  miningInstructions() {
+    this.text = [
+      "carefully approach",
+      "an asteroid",
+      null,
+      null,
+      null,
+      "to extract ores"
+    ];
+  }
+
   showShipState(ship: Ship) {
     if (ship.state === ShipState.Accelerating) {
       this.text = ["accelerating"];

@@ -61,6 +61,7 @@ function setupGameState(isReset = false) {
     isDriving: false,
     isShowingControls: false,
     shouldShowControls: true,
+    showInstructionsTimer: 0,
     showDamageTimer: 0,
     deadTimer: 0,
     menuFadeInTimer: 0,
@@ -315,6 +316,12 @@ function loop() {
 
       if (state.isShowingControls && (p.keyPressed("z") || p.keyPressed("x"))) {
         state.isShowingControls = false;
+        state.showInstructionsTimer = 4;
+      }
+
+      if (state.showInstructionsTimer > 0) {
+        gui.miningInstructions();
+        state.showInstructionsTimer -= p.deltaTime;
       }
 
       // add titles
