@@ -149,8 +149,15 @@ export default class Plant {
   }
 
   draw() {
-    const pot = sprites.pot[0];
-    this.system.draw(this.x, this.y - 3, this.highlight);
+    const flash = p.frame % 10 < 5;
+
+    if (this.highlight) {
+      this.system.draw(this.x, this.y - 3, flash ? light : dark);
+    } else {
+      this.system.draw(this.x, this.y - 3);
+    }
+
+    const pot = sprites.pot[this.highlight && flash ? 1 : 0];
     p.sprite(this.x - pot.w / 2, this.y - pot.h, pot);
 
     for (const [x, y] of this.waterParticles) {

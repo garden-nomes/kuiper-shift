@@ -1,3 +1,4 @@
+import { Color } from "pota-8/dist/renderer";
 import { dark, light } from "./colors";
 import { drawTurtle, TurtleCommand, TurtleOp } from "./turtle";
 
@@ -142,7 +143,7 @@ export default class PlantSystem {
     this.cachedRendingBounds = [xMin, yMin, w, h];
   }
 
-  draw(x: number, y: number, highlight = false) {
+  draw(x: number, y: number, outline?: Color) {
     if (!this.cachedRendering) return;
 
     const [x0, y0, w, h] = this.cachedRendingBounds;
@@ -153,9 +154,7 @@ export default class PlantSystem {
         const py = y + y0 + ~~(i / w);
 
         // prettier-ignore
-        const c = highlight
-          ? p.frame % 10 < 5 ? light : dark
-          : this.cachedRendering[i] === 2 ? dark : light;
+        const c = outline || (this.cachedRendering[i] === 2 ? dark : light);
 
         p.pixel(px + 1, py, c);
         p.pixel(px - 1, py, c);
