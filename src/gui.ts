@@ -24,7 +24,7 @@ export default class Gui {
   }
 
   showMining(ore: number) {
-    this.text = ["mining", `ore: ${ore.toFixed(0)}/1000`];
+    this.text = ["mining", `${Math.floor(ore)}/1000 ore`];
   }
 
   holdFull() {
@@ -98,7 +98,7 @@ export default class Gui {
 
   collided(ship: Ship) {
     if (p.elapsed % 0.5 < 2 / 6) {
-      const hullIntegrity = `${(ship.hullIntegrity * 100).toFixed(0)}%`;
+      const hullIntegrity = `${Math.floor(ship.hullIntegrity * 100)}%`;
       this.text = ["collision", "detected", null, "hull: " + hullIntegrity];
     } else {
       this.text = [];
