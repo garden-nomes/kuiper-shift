@@ -24,10 +24,18 @@ export class Audio {
     this.gain = this.ctx.createGain();
     this.gain.connect(this.ctx.destination);
     this.loadAudioSprite();
+  }
 
-    window.addEventListener("click", () => {
-      this.ctx.resume();
-    });
+  unlock() {
+    // work around autoplay policy
+
+    const unlock = () => {
+      if (this.ctx.state === "suspended") {
+        this.ctx.resume();
+      }
+    };
+    window.addEventListener("click", unlock);
+    window.addEventListener("keydown", unlock);
   }
 
   async loadAudioSprite() {
