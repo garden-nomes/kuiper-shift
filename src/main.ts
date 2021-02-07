@@ -59,7 +59,8 @@ function setupGameState(isReset = false) {
     gui,
     menu,
     isDriving: false,
-    showControls: false,
+    isShowingControls: false,
+    shouldShowControls: true,
     showDamageTimer: 0,
     deadTimer: 0,
     menuFadeInTimer: 0,
@@ -228,6 +229,10 @@ function loop() {
       }
     }
 
+    if (ship.ore > 300) {
+      state.shouldShowControls = false;
+    }
+
     // ship/asteroid interactions
     if (ship.hullIntegrity > 0) {
       for (let i = 0; i < asteroids.length; i++) {
@@ -293,12 +298,12 @@ function loop() {
 
     if (state.isDriving) {
       // show controls until player starts moving
-      if (state.showControls) {
+      if (state.isShowingControls) {
         gui.showDrivingControls();
       }
 
-      if (state.showControls && (p.keyPressed("z") || p.keyPressed("x"))) {
-        state.showControls = false;
+      if (state.isShowingControls && (p.keyPressed("z") || p.keyPressed("x"))) {
+        state.isShowingControls = false;
       }
 
       // add titles
@@ -360,8 +365,11 @@ function loop() {
 
             if (p.keyPressed("c")) {
               state.isDriving = true;
-              state.showControls = true;
               audio.playOneShot("on");
+
+              if (state.shouldShowControls) {
+                state.isShowingControls = true;
+              }
             }
           }
 
