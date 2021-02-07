@@ -27,21 +27,38 @@ export default class Plant {
   private waterParticles = [];
   private readonly dripSeconds = 5;
 
-  constructor() {
-    // don't drop in front of bed or shelves
-    const minX = furniture.bed.x + furniture.bed.w + 2;
-    const maxX = furniture.shelves.x;
+  constructor(otherPlants: Plant[]) {
+    // try and avoid placing plant on top of another one
+    for (let i = 0; i < 50; i++) {
+      const [x, y] = this.findInitialPlacement();
 
-    let x = Math.random() * (maxX - furniture.console.w) + minX;
+      const isOverlapping = otherPlants.some(other => {
+        return Math.abs(other.x - x) < 4 && Math.abs(other.y - y) < 10e-5;
+      });
 
-    // don't drop in front of console
-    const consoleLeft = furniture.console.x;
-    const consoleRight = furniture.console.x + furniture.console.w;
-    if (x > consoleLeft && x < consoleRight) {
-      x += furniture.console.w;
+      if (isOverlapping && x < 49) continue;
+
+      this.x = x;
+      this.lastYPlacement = y;
+    }
+  }
+
+  // generate a random point on top of some furniture
+  findInitialPlacement() {
+    const { bedShelf, workbench, table, shelves } = furniture;
+
+    const range = bedShelf.w + workbench.w + table.w + shelves.w * 2;
+    let x = Math.random() * range;
+
+    for (const obj of [bedShelf, workbench, table]) {
+      if (x < obj.w) return [obj.x + x, 48 - obj.h];
+      x -= obj.w;
     }
 
-    this.x = x;
+    if (x < shelves.w) return [shelves.x + x, 48 - shelves.h[0]];
+    x -= shelves.w;
+
+    return [shelves.x + x, 48 - shelves.h[1]];
   }
 
   update() {

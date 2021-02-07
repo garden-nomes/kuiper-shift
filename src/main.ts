@@ -133,7 +133,7 @@ function gotoMenu() {
     state.ship.credits = resources.credits;
 
     for (let i = 0; i < purchases.plants; i++) {
-      state.plants.push(new Plant());
+      state.plants.push(new Plant(state.plants));
     }
 
     if (purchases.calendar) {
