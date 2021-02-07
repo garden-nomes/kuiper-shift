@@ -10,16 +10,22 @@ export enum PlantState {
 
 export default class Plant {
   x = 0;
-  lastPlacement = 0;
-  hydration = 0.5;
-  system = new PlantSystem();
-  updateInterval = 1 / 3;
-  updateTimer = 0;
-  waterTimer = 0;
-  growthRate = 0.05;
   highlight = false;
-  isWatering = true;
-  waterParticles = [];
+  hydration = 0.5;
+
+  private lastYPlacement = 0;
+
+  private system = new PlantSystem();
+  private readonly systemUpdateInterval = 0.5;
+
+  private updateTimer = 0;
+  private waterTimer = 0;
+
+  private readonly growthRate = 0.05;
+  private readonly dehydrationRate = 0.01;
+
+  private waterParticles = [];
+  private readonly dripSeconds = 5;
 
   constructor() {
     // don't drop in front of bed or shelves
@@ -39,18 +45,19 @@ export default class Plant {
   }
 
   update() {
-    this.hydration -= p.deltaTime * 0.01;
-    this.hydration = Math.min(Math.max(this.hydration, 0), 1.02);
+    this.hydration -= p.deltaTime * this.dehydrationRate;
+    this.hydration = Math.min(Math.max(this.hydration, 0), 1);
 
     this.updateTimer += this.growthRate * p.deltaTime * this.hydration * 2;
 
-    if (this.updateTimer > this.updateInterval) {
+    if (this.updateTimer > this.systemUpdateInterval) {
       this.system.iterate(this.updateTimer);
       this.updateTimer = 0;
     }
 
-    if (this.hydration > 1) {
+    if (this.hydration > 1 - this.dripSeconds * this.dehydrationRate) {
       this.waterTimer += p.deltaTime;
+
       if (this.waterTimer > 0.2) {
         this.waterTimer = 0;
         this.waterParticles.push([this.x, this.y - 4, Math.random() > 0.5 ? -1 : 1]);
@@ -79,14 +86,14 @@ export default class Plant {
     const levels = this.possiblePlacements;
     let i = levels.indexOf(this.placement);
     i = Math.min(i + 1, levels.length - 1);
-    this.lastPlacement = levels[i];
+    this.lastYPlacement = levels[i];
   }
 
   moveDown() {
     const levels = this.possiblePlacements;
     let i = levels.indexOf(this.placement);
     i = Math.max(i - 1, 0);
-    this.lastPlacement = levels[i];
+    this.lastYPlacement = levels[i];
   }
 
   get placement() {
@@ -95,7 +102,7 @@ export default class Plant {
     let closestLevel = levels[0];
     for (const y of levels) {
       if (
-        Math.abs(y - this.lastPlacement) < Math.abs(closestLevel - this.lastPlacement)
+        Math.abs(y - this.lastYPlacement) < Math.abs(closestLevel - this.lastYPlacement)
       ) {
         closestLevel = y;
       }

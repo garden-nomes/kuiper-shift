@@ -27,7 +27,7 @@ export default class Miner {
       if (Math.abs(this.x - targetX) < 10e-5) {
         this.x = targetX;
         this.flip = this.wateringPlant.x < this.x;
-        this.wateringPlant.hydration = 1.02;
+        this.wateringPlant.hydration = 1;
         this.wateringPlant = null;
       } else {
         const toTarget = targetX - this.x;
