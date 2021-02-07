@@ -543,7 +543,8 @@ function loop() {
 
     if (p.elapsed % 2 < 4 / 3) {
       const w = p.textWidth("press Ⓒ to start");
-      p.rect(p.width / 2 - w - 1, p.height - 10, w + 2, 7, dark);
+      p.rect(p.width / 2 - w / 2, p.height - 10, w + 2, 7, dark);
+
       p.text("press Ⓒ to start", p.width / 2, p.height - 9, {
         color: light,
         align: TextAlign.Center
