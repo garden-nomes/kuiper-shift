@@ -85,7 +85,7 @@ export default class Gui {
         break;
     }
 
-    this.text = [...this.text, null, "hold Ⓒ water", "Ⓧ move"];
+    this.text = [...this.text, null, "Ⓒ water", "Ⓧ move"];
   }
 
   holdingPlant(canChangeLevel: boolean) {
