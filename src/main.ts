@@ -530,13 +530,13 @@ function loop() {
     p.sprite(p.width / 2 - title.w / 2, 10, title);
 
     for (let lx = 25 + ox; lx < 55; lx++) {
-      if (noise.noise2D(lx * 0.1, p.elapsed * 0.5) < 0.5) {
+      if (noise.noise3D(lx * 0.1, 0, p.elapsed * 0.5) < 0.5) {
         p.pixel(lx, 8, dark);
       }
     }
 
-    for (let lx = 34 + ox; lx < 59; lx++) {
-      if (noise.noise2D(lx * 0.1, p.elapsed * 0.5) < 0.5) {
+    for (let lx = 33; lx < 59 + ox; lx++) {
+      if (noise.noise3D(lx * 0.1, 1, p.elapsed * 0.5) < 0.5) {
         p.pixel(lx, 23, dark);
       }
     }
