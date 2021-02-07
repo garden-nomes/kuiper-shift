@@ -3,26 +3,29 @@ import Ship from "./ship";
 
 export default function drawHud(ship: Ship, proximity: number | null, isMining: boolean) {
   // speed bar
-  const speedBarHeight = Math.min(Math.log(ship.speed + 1) * 16, 27);
-  p.line(3, 36, 3, 36 - speedBarHeight, light);
+  const speedBarHeight = Math.min(Math.log(ship.speed + 1) * 16, 26);
+
+  if (speedBarHeight > 0) {
+    p.line(3, 35, 3, 35 - speedBarHeight, light);
+  }
 
   // proximity meter
   if (proximity !== null && proximity < 10) {
-    const proximityHeight = Math.min(Math.log(proximity + 1) * 16 - 1, 24);
+    const proximityHeight = Math.min(Math.log(proximity + 1) * 16 - 1, 23);
     const flashing = proximity < ship.miningDistance;
 
     p.line(
       p.width - 4,
-      32,
+      31,
       p.width - 4,
-      32 - proximityHeight,
+      31 - proximityHeight,
       flashing && p.frame % 2 === 0 ? dark : light
     );
   }
 
   // proximity meter tick mark for mining distance
-  const tickHeight = Math.min(Math.log(ship.miningDistance + 1) * 16 - 1, 24);
-  p.line(p.width - 7, 32 - tickHeight, p.width - 6, 32 - tickHeight, light);
+  const tickHeight = Math.log(ship.miningDistance + 1) * 16 - 1;
+  p.line(p.width - 7, 31 - tickHeight, p.width - 6, 31 - tickHeight, light);
 
   const [cx, cy] = [p.width / 2, p.height / 2];
 
