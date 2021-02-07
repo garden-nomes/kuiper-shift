@@ -512,6 +512,7 @@ function loop() {
     }
   }
 
+  // TITLE SCREEN
   if (state.isTitleScreen) {
     let ox = Math.round(Math.cos(p.elapsed));
     let oy = Math.round(Math.sin(p.elapsed + 0.2));
@@ -519,38 +520,26 @@ function loop() {
     p.circle(p.width / 2 + ox, 14 + oy, 18, light);
 
     const title = sprites.title[0];
-    p.sprite(p.width / 2 - title.w / 2 + 1, 10, title);
+    p.sprite(p.width / 2 - title.w / 2, 10, title);
 
-    for (let lx = 22; lx < 55; lx++) {
-      if (noise.noise2D(lx, p.elapsed * 0.5) < 0.5) {
+    for (let lx = 25 + ox; lx < 55; lx++) {
+      if (noise.noise2D(lx * 0.1, p.elapsed * 0.5) < 0.5) {
         p.pixel(lx, 8, dark);
       }
     }
 
-    for (let lx = 32; lx < 61; lx++) {
-      if (noise.noise2D(lx, p.elapsed * 0.5) < 0.5) {
+    for (let lx = 34 + ox; lx < 59; lx++) {
+      if (noise.noise2D(lx * 0.1, p.elapsed * 0.5) < 0.5) {
         p.pixel(lx, 23, dark);
       }
     }
 
     if (p.elapsed % 2 < 4 / 3) {
-      // prettier-ignore
-      // text shadow effect
-      for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-        p.text("Ⓒ start", p.width / 2 + ox, p.height - 6 + oy, {
-          color: dark,
-          align: TextAlign.Center,
-          verticalAlign: VerticalAlign.Bottom
-        });
-      }
-
-      // fills in some awkward gaps in the text shadow
-      p.rect(p.width / 2 - 4, p.height - 9, 17, 3, dark);
-
-      p.text("Ⓒ start", p.width / 2, p.height - 6, {
+      const w = p.textWidth("press Ⓒ to start");
+      p.rect(p.width / 2 - w - 1, p.height - 10, w + 2, 7, dark);
+      p.text("press Ⓒ to start", p.width / 2, p.height - 9, {
         color: light,
-        align: TextAlign.Center,
-        verticalAlign: VerticalAlign.Bottom
+        align: TextAlign.Center
       });
     }
   } else if (state.isAsleep && state.dreamBackdrop >= 1) {
