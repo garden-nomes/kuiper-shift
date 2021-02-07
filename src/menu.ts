@@ -51,29 +51,33 @@ class ResultsScreen {
   private credits: MovingNumber;
   private hull: MovingNumber;
 
-  private repairCost = 0;
-  private sellValue = 0;
-
   private step = 0;
   private stepTimer = 0;
 
   constructor({ credits, hull, ore }: Resources) {
-    this.ore = new MovingNumber(ore, 1000);
-    this.credits = new MovingNumber(credits, 100);
-    this.hull = new MovingNumber(hull, 1);
+    this.ore = new MovingNumber(ore, 200);
+    this.credits = new MovingNumber(credits, 20);
+    this.hull = new MovingNumber(hull, 0.2);
+  }
 
-    this.repairCost = Math.min((1 - this.hull.value) * 1000, this.ore.value);
-    this.sellValue = (this.ore.value - this.repairCost) / 10;
+  get isMoving() {
+    return this.hull.isMoving || this.ore.isMoving || this.credits.isMoving;
   }
 
   update() {
-    const isMoving = this.hull.isMoving || this.ore.isMoving || this.credits.isMoving;
-
-    if (!isMoving) {
+    if (!this.isMoving) {
       this.stepTimer += p.deltaTime;
     }
 
-    if (this.step < 3 && this.stepTimer >= 1) {
+    if (this.step < 3 && this.stepTimer >= 1.5) {
+      if (this.step === 0 && (this.hull.value >= 1 || this.ore.value <= 0)) {
+        this.step++;
+      }
+
+      if (this.step === 1 && this.ore.value <= 0) {
+        this.step++;
+      }
+
       switch (this.step) {
         case 0:
           this.repairHull();
@@ -106,11 +110,9 @@ class ResultsScreen {
     const ore = this.ore.value;
 
     if ((1 - hull) * 1000 >= ore) {
-      this.repairCost = this.ore.value;
       this.hull.value += ore / 1000;
       this.ore.value = 0;
     } else {
-      this.repairCost = (1 - hull) * 1000;
       this.ore.value -= (1 - hull) * 1000;
       this.hull.value = 1;
     }
@@ -122,44 +124,53 @@ class ResultsScreen {
   }
 
   draw() {
-    const hullText = Math.floor(this.hull.displayValue * 100) + "%";
-    const oreText = Math.floor(this.ore.displayValue) + "";
-    const creditsText = Math.floor(this.credits.displayValue) + "";
+    const oreText = Math.floor(this.ore.displayValue) + " ore";
+    const creditsText = Math.floor(this.credits.displayValue) + "¢";
 
-    const left = 6;
-    const right = p.width - 6;
+    const left = 8;
+    const right = p.width - 8;
 
-    let top = 2;
+    let top = 8;
     const col = p.width / 4;
-    textWithBackground("hull", left, top, false);
-    textWithBackground(hullText, left, top + 7, true);
 
-    textWithBackground("¢", p.width / 2, top, false, TextAlign.Center);
-    textWithBackground(creditsText, p.width / 2, top + 7, true, TextAlign.Center);
+    textWithBackground(oreText, left, top, this.ore.isMoving, TextAlign.Left);
+    textWithBackground(creditsText, right, top, this.credits.isMoving, TextAlign.Right);
 
-    textWithBackground("ore", right, top, false, TextAlign.Right);
-    textWithBackground(oreText, right, top + 7, true, TextAlign.Right);
+    if (this.step === 1) {
+      top += 11;
 
-    if (this.step < 1) return;
+      const flash = p.elapsed % 1 > 2 / 3;
+      if (this.isMoving && !flash) {
+        textWithBackground("repairing", p.width / 2, top, false, TextAlign.Center);
+        textWithBackground("hull damage", p.width / 2, top + 6, false, TextAlign.Center);
+      }
 
-    top += 15;
-    const repairCost = `-${Math.floor(this.repairCost)} ore`;
-    textWithBackground("hull", left, top, false);
-    textWithBackground("repairs", left, top + 6, false);
-    textWithBackground(repairCost, right, top + 6, false, TextAlign.Right);
+      top += 15;
 
-    if (this.step < 2) return;
+      const barWidth = (right - left - 2) * this.hull.displayValue;
+      p.rect(left, top, right - left, 7, light);
+      p.rect(left + 1, top + 1, barWidth, 5, dark);
 
-    top += 14;
-    const sellValue = `+${Math.floor(this.sellValue)}¢`;
-    left + textWithBackground("ore value", left, top, false);
-    right - textWithBackground(sellValue, right, top, false, TextAlign.Right);
+      const hullText = Math.floor(this.hull.displayValue * 100) + "%";
+      textWithBackground(hullText, p.width / 2, top, false, TextAlign.Center);
+    } else if (this.step === 2) {
+      top += 18;
 
-    if (this.step < 3) return;
-
-    if (this.stepTimer % 2 < 4 / 3) {
-      top += 8;
-      textWithBackground("Ⓒ continue", p.width / 2, top, true, TextAlign.Center);
+      if (this.isMoving) {
+        const flash = p.elapsed % 0.5 > 1 / 4;
+        textWithBackground("transmitting", p.width / 2, top, flash, TextAlign.Center);
+      }
+    } else if (this.step === 3) {
+      if (this.stepTimer % 2 < 4 / 3) {
+        textWithBackground(
+          "Ⓒ continue",
+          p.width / 2,
+          p.height / 2,
+          true,
+          TextAlign.Center,
+          VerticalAlign.Middle
+        );
+      }
     }
   }
 }
