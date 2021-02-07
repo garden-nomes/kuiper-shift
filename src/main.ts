@@ -410,7 +410,7 @@ function loop() {
                 audio.playOneShot("blip-0");
               }
             }
-          } else {
+          } else if (!state.isHardMode) {
             state.isHatchOpen = false;
           }
 
