@@ -341,8 +341,19 @@ function loop() {
         }
       } else {
         // plant interaction takes priority
-        const plant = plants.find(p => Math.abs(miner.x - p.x) < 2);
-        if (plant) {
+        const interactiblePlants = plants.filter(p => Math.abs(miner.x - p.x) < 3);
+
+        if (interactiblePlants.length) {
+          // find closest
+          let plant = interactiblePlants[0];
+          for (let i = 1; i < interactiblePlants.length; i++) {
+            const dist = Math.abs(interactiblePlants[i].x - miner.x);
+
+            if (dist < Math.abs(plant.x - miner.x)) {
+              plant = interactiblePlants[i];
+            }
+          }
+
           plant.highlight = true;
           gui.interactPlant(plant);
 
